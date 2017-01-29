@@ -123,19 +123,13 @@ _fold_start_ '[Initializing Steamworks service]'
     WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -u && winetricks sound=disabled
     WINEDEBUG=-all wine steam -silent -forceservice -no-browser -no-cef-sandbox -opengl -login "$STEAM_AC" "$STEAM_TK" &
 
-    ((t = 222)); while ((t > 0)); do
-        grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'OK' && break;
-        grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'Account Logon Denied' && exit 1;
+    sleep 200;
 
-        ((t == 1)) && break;
-
-        sleep 1;
-        echo $t;
-        ((t--));
-    done
-
-    curl -LOJs https://raw.githubusercontent.com/tremby/imgur.sh/master/imgur.sh && chmod +x ./imgur.sh
-    import screenshot.png && ./imgur.sh screenshot.png
+    curl -LOJ https://raw.githubusercontent.com/tremby/imgur.sh/master/imgur.sh
+    chmod +x ./imgur.sh
+    import screenshot.png
+    ls -lash
+    ./imgur.sh screenshot.png
     
     exit 0
 
