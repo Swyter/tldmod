@@ -3,7 +3,7 @@ _fold_start_() { echo -en "travis_fold:start:script.$(( ++fold_count ))\\r" && e
 _fold_final_() { echo -en "travis_fold:end:script.$fold_count\\r"; }
 
 _fold_start_ '[Installing dependencies]'
-    sudo apt-get install xvfb tree git imagemagick alsa wine winetricks
+    sudo apt-get install xvfb tree git scrot alsa wine winetricks
 
 _fold_final_
 
@@ -127,7 +127,8 @@ _fold_start_ '[Initializing Steamworks service]'
 
     curl -LOJ https://raw.githubusercontent.com/tremby/imgur.sh/master/imgur.sh
     chmod +x ./imgur.sh
-    import screenshot.png
+    ls -lash
+    scrot screenshot.png
     ls -lash
     ./imgur.sh screenshot.png
     
