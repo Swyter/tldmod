@@ -3,7 +3,7 @@ _fold_start_() { echo -en "travis_fold:start:script.$(( ++fold_count ))\\r" && e
 _fold_final_() { echo -en "travis_fold:end:script.$fold_count\\r"; }
 
 _fold_start_ '[Installing dependencies]'
-    sudo apt-get install xvfb tree git imagemagick alsa wine winetricks
+    sudo apt-get install xvfb tree git alsa wine winetricks scrot
 
 _fold_final_
 
@@ -121,11 +121,12 @@ _fold_start_ '[Initializing Steamworks service]'
 
     # initialize the Wine environment and disable the sound driver output (travis-ci doesn't have any dummy ALSA devices)
     WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -u && winetricks sound=disabled
-    WINEDEBUG=-all wine steam -silent -forceservice -no-browser -no-cef-sandbox -opengl -login swyter "$STEAM_TK" &
+    WINEDEBUG=-all wine steam -silent -forceservice -no-browser -no-cef-sandbox -opengl -login "$STEAM_AC" "`openssl base64 -d <<< "$STEAM_TK"`" &
 
     ((t = 290)); while ((t > 0)); do
-        grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'OK' && break;
-        grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'Account Logon Denied' && exit 1;
+        grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'OK'                   && echo '>> OK'                   && break;
+        grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'Invalid Password'     && echo '>> Invalid Password'     && exit 1;
+        grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'Account Logon Denied' && echo '>> Account Logon Denied' && exit 1;
 
         if ((t == 1)); then
             curl -LOJ https://raw.githubusercontent.com/tremby/imgur.sh/master/imgur.sh && chmod +x ./imgur.sh
