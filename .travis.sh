@@ -3,7 +3,7 @@ _fold_start_() { echo -en "travis_fold:start:script.$(( ++fold_count ))\\r" && e
 _fold_final_() { echo -en "travis_fold:end:script.$fold_count\\r"; }
 
 _fold_start_ '[Installing dependencies]'
-    sudo apt-get install xvfb tree git imagemagick alsa wine
+    sudo apt-get install xvfb tree git imagemagick alsa wine winetricks
 
 _fold_final_
 
@@ -118,19 +118,16 @@ _fold_start_ '[Initializing Steamworks service]'
     cd .. && mkdir steam && chmod 777 steam && cd steam
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe
     curl -LOJs "$STEAM_SS"
-    
-    sudo usermod -a -G audio travis
-    curl -LOJs https://raw.githubusercontent.com/k3it/qsorder/master/test/prep-dummy-soundcard.sh && chmod +x ./prep-dummy-soundcard.sh
-    sudo bash ./prep-dummy-soundcard.sh
 
-    WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -u
-    AUDIODEV=null WINEDEBUG=-all wine steam -silent -forceservice -no-browser -no-cef-sandbox -opengl -login "$STEAM_AC" "$STEAM_TK" &
+    # initialize the Wine environment and disable the sound driver output (travis-ci doesn't have any dummy ALSA devices)
+    WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -u && winetricks sound=disabled
+    WINEDEBUG=-all wine steam -silent -forceservice -no-browser -no-cef-sandbox -opengl -login "$STEAM_AC" "$STEAM_TK" &
 
     ((t = 290)); while ((t > 0)); do
         grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'OK' && break;
         grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'Account Logon Denied' && exit 1;
 
-        ((t == 1)) && break; # exit 1
+        ((t == 1)) && exit 1
 
         sleep 1;
         echo $t;
@@ -138,11 +135,7 @@ _fold_start_ '[Initializing Steamworks service]'
     done
 
     curl -LOJs https://raw.githubusercontent.com/tremby/imgur.sh/master/imgur.sh && chmod +x ./imgur.sh
-
-    import screenshot.png
-    ./imgur.sh screenshot.png
-
-    exit 1;
+    import screenshot.png && ./imgur.sh screenshot.png
 
 _fold_final_
 
