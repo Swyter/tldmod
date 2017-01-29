@@ -3,10 +3,7 @@ _fold_start_() { echo -en "travis_fold:start:script.$(( ++fold_count ))\\r" && e
 _fold_final_() { echo -en "travis_fold:end:script.$fold_count\\r"; }
 
 _fold_start_ '[Installing dependencies]'
-    sudo apt-get install xvfb tree git
-    sudo add-apt-repository ppa:wine/wine-builds -y
-    sudo apt-get update -y
-    sudo apt-get install --install-recommends wine-staging winehq-staging -y
+    sudo apt-get install xvfb tree git imagemagick alsa wine
 
 _fold_final_
 
@@ -129,7 +126,17 @@ _fold_start_ '[Initializing Steamworks service]'
         grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'OK' && break;
         grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'Account Logon Denied' && exit 1;
 
-        ((t == 1)) && exit 1;
+        if ((t == 1)); then
+        
+            curl -LOJs http://imgur.com/tools/imgurbash.sh && chmod +x imgurbash.sh
+
+            import screenshot.png
+            ./imgurbash.sh screenshot.png
+
+            exit 1;
+
+        fi
+
 
         sleep 1;
         echo $t;
