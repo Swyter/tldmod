@@ -120,7 +120,7 @@ _fold_start_ '[Initializing Steamworks service]'
     curl -LOJs "$STEAM_SS"
 
     WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -u
-    WINEDEBUG=-all wine steam -silent -forceservice -no-browser -no-cef-sandbox -opengl -login "$STEAM_AC" "$STEAM_TK" &
+    AUDIODEV=null WINEDEBUG=-all wine steam -silent -forceservice -no-browser -no-cef-sandbox -opengl -login "$STEAM_AC" "$STEAM_TK" &
 
     ((t = 360)); while ((t > 0)); do
         grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'OK' && break;
@@ -133,7 +133,7 @@ _fold_start_ '[Initializing Steamworks service]'
         ((t--));
     done
 
-    curl -LOJs https://raw.githubusercontent.com/tremby/imgur.sh/master/imgur.sh
+    curl -LOJs https://raw.githubusercontent.com/tremby/imgur.sh/master/imgur.sh && chmod +x ./imgur.sh
 
     import png:- | ./imgur.sh
 
