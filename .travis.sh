@@ -3,7 +3,10 @@ _fold_start_() { echo -en "travis_fold:start:script.$(( ++fold_count ))\\r" && e
 _fold_final_() { echo -en "travis_fold:end:script.$fold_count\\r"; }
 
 _fold_start_ '[Installing dependencies]'
-    sudo apt-get install xvfb wine tree git
+    sudo apt-get install xvfb tree git
+    sudo add-apt-repository ppa:wine/wine-builds
+    sudo apt-get update
+    sudo apt-get install --install-recommends wine-staging winehq-staging
 
 _fold_final_
 
@@ -11,11 +14,7 @@ echo HI THERE! && SVNREV=$(git rev-list --count HEAD)
 
 WORKSHOP_DESC="$(git log -1 --pretty=%B)"
 echo "$WORKSHOP_DESC"
-
-_fold_start_ '[Initial TLD tree view]'
-    tree -h .
-
-_fold_final_
+echo "----"
 
 cd ModuleSystem
 
@@ -96,7 +95,9 @@ _fold_start_ "[Packaging and stripping revision $SVNREV into a Steam Workshop bu
     rm -f  ./*.cdd
     rm -f  ./*.lua
     rm -f  ./*.htm
+    rm -f  ./*.nsi
     rm -f  ./module-wb.ini
+    rm -f  ./game_variables-wb.txt
     rm -f  ./*orc*
 
     rm -rf ./_*
@@ -108,7 +109,7 @@ _fold_final_
 
 _fold_start_ '[Final tree view]'
     ls -lash
-    tree .
+    #tree .
 
 _fold_final_
 
@@ -117,7 +118,7 @@ _fold_start_ '[Initializing Steamworks service]'
     Xvfb :1 -screen 0 800x600x16 &
     export DISPLAY=:1
 
-    cd .. && mkdir steam && cd steam
+    cd .. && mkdir steam && chmod 777 steam && cd steam
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe
     curl -LOJs "$STEAM_SS"
 
