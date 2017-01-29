@@ -4,9 +4,9 @@ _fold_final_() { echo -en "travis_fold:end:script.$fold_count\\r"; }
 
 _fold_start_ '[Installing dependencies]'
     sudo apt-get install xvfb tree git
-    sudo add-apt-repository ppa:wine/wine-builds
-    sudo apt-get update
-    sudo apt-get install --install-recommends wine-staging winehq-staging
+    sudo add-apt-repository ppa:wine/wine-builds -y
+    sudo apt-get update -y
+    sudo apt-get install --install-recommends wine-staging winehq-staging -y
 
 _fold_final_
 
