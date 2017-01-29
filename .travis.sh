@@ -118,11 +118,15 @@ _fold_start_ '[Initializing Steamworks service]'
     cd .. && mkdir steam && chmod 777 steam && cd steam
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe
     curl -LOJs "$STEAM_SS"
+    
+    sudo usermod -a -G audio travis
+    curl -LOJs https://raw.githubusercontent.com/k3it/qsorder/master/test/prep-dummy-soundcard.sh && chmod +x ./prep-dummy-soundcard.sh
+    sudo bash ./prep-dummy-soundcard.sh
 
     WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -u
     AUDIODEV=null WINEDEBUG=-all wine steam -silent -forceservice -no-browser -no-cef-sandbox -opengl -login "$STEAM_AC" "$STEAM_TK" &
 
-    ((t = 360)); while ((t > 0)); do
+    ((t = 290)); while ((t > 0)); do
         grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'OK' && break;
         grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'Account Logon Denied' && exit 1;
 
@@ -135,7 +139,8 @@ _fold_start_ '[Initializing Steamworks service]'
 
     curl -LOJs https://raw.githubusercontent.com/tremby/imgur.sh/master/imgur.sh && chmod +x ./imgur.sh
 
-    import png:- | ./imgur.sh
+    import screenshot.png
+    ./imgur.sh screenshot.png
 
     exit 1;
 
