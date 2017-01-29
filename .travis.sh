@@ -126,22 +126,18 @@ _fold_start_ '[Initializing Steamworks service]'
         grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'OK' && break;
         grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'Account Logon Denied' && exit 1;
 
-        if ((t == 1)); then
-        
-            curl -LOJs http://imgur.com/tools/imgurbash.sh && chmod +x imgurbash.sh
-
-            import screenshot.png
-            ./imgurbash.sh screenshot.png
-
-            exit 1;
-
-        fi
-
+        ((t == 1)) && break; # exit 1
 
         sleep 1;
         echo $t;
         ((t--));
     done
+
+    curl -LOJs https://raw.githubusercontent.com/tremby/imgur.sh/master/imgur.sh
+
+    import png:- | ./imgur.sh
+
+    exit 1;
 
 _fold_final_
 
