@@ -116,8 +116,8 @@ _fold_start_ '[Initializing Steamworks service]'
     export DISPLAY=:1
 
     cd .. && mkdir steam && chmod 777 steam && cd steam
-    curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe
-    curl -LOJs "`openssl base64 -d <<< "$STEAM_SS"`"
+    curl -LOJ https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe
+    curl -LOJ "`openssl base64 -d <<< "$STEAM_SS"`"
 
     # initialize the Wine environment and disable the sound driver output (travis-ci doesn't have any dummy ALSA devices)
     WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -u && winetricks sound=disabled
