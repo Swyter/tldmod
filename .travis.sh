@@ -115,6 +115,8 @@ _fold_start_ '[Initializing Steamworks service]'
     curl -LOJ "$STEAM_SS"
 
     ls -lash
+    
+    echo "$PATH"
 
     killall -I Xvfb
     exit 0
