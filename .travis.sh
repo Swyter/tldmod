@@ -11,7 +11,7 @@ echo "----"
 cd ModuleSystem
 
 _fold_start_ "[Compiling retail revision $SVNREV]"
-    curl https://ccrma.stanford.edu/~craig/utility/flip/flip.cpp -O -J && g++ flip.cpp -o "$HOME/.local/bin/flip"
+    curl https://ccrma.stanford.edu/~craig/utility/flip/flip.cpp -O -J && mkdir -p ~/.local/bin && g++ flip.cpp -o ~/.local/bin/flip
 
     # disable cheat mode for the generated nightly builds...
     sed -i 's/cheat_switch = 1/cheat_switch = 0/' module_constants.py
@@ -117,9 +117,9 @@ _fold_start_ '[Initializing Steamworks service]'
     WINEDEBUG=-all wine steam -silent -forceservice -no-browser -no-cef-sandbox -opengl -login "$STEAM_AC" "`openssl base64 -d <<< "$STEAM_TK"`" &
 
     ((t = 290)); while ((t > 0)); do
-        grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'OK'                   && echo '>> OK'                   && break;
-        grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'Invalid Password'     && echo '>> Invalid Password'     && exit 1;
-        grep 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'Account Logon Denied' && echo '>> Account Logon Denied' && exit 1;
+        grep --no-messages 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'OK'                   && echo '>> OK'                   && break;
+        grep --no-messages 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'Invalid Password'     && echo '>> Invalid Password'     && exit 1;
+        grep --no-messages 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'Account Logon Denied' && echo '>> Account Logon Denied' && exit 1;
 
         if ((t == 1)); then
             curl -LOJ https://raw.githubusercontent.com/tremby/imgur.sh/master/imgur.sh && chmod +x ./imgur.sh
@@ -143,13 +143,17 @@ _fold_final_
 _fold_start_ '[Uploading Steam Workshop build]'
     cd .. && mv tldmod 'The Last Days of the Third Age'
 
-    curl -L -O https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/mbw_workshop_uploader_glsl.exe
-    curl -L -O https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/steam_api.dll
-    curl -L -O https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/tldmod.ini
-    curl -L -O https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/tldmod.png
+    curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/mbw_workshop_uploader_glsl.exe
+    curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/steam_api.dll
+    curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/tldmod.ini
+    curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/tldmod.png
 
     echo 48700 > steam_appid.txt
-    yes NO | env WINEDEBUG=-all wine mbw_workshop_uploader_glsl.exe update -mod tldmod.ini -id 742666341 -icon tldmod.png -changes "$WORKSHOP_DESC"
+ 
+    yes NO | wine mbw_workshop_uploader_glsl.exe update -mod tldmod.ini \
+                                                                            -id 742666341  \
+                                                                          -icon tldmod.png \
+                                                                       -changes "$WORKSHOP_DESC"
     sleep 10 && killall -I steam.exe && killall -I Xvfb
 
 _fold_final_
