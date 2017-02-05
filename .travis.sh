@@ -16,11 +16,8 @@ _fold_start_ "[Compiling retail revision $SVNREV]"
     # disable cheat mode for the generated nightly builds...
     sed -i 's/cheat_switch = 1/cheat_switch = 0/' module_constants.py
 
-    # add a placeholder 'title' program to avoid log spam...
-    sudo sh -c 'echo "#/usr/bin/bash" > /usr/bin/title && chmod +x /usr/bin/title'
-
-    ./build_module.sh
-    ./build_module_wb.sh
+    ./build_module.sh     2> /dev/null
+    ./build_module_wb.sh  2> /dev/null
 
 _fold_final_
 
@@ -111,15 +108,11 @@ _fold_start_ '[Initializing Steamworks service]'
     export DISPLAY=:1
 
     cd .. && mkdir steam && chmod 777 steam && cd steam
-    curl -LOJ https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe
-    curl -LOJ "$STEAM_SS"
+    curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe
+    curl -LOJs "$STEAM_SS"
 
     ls -lash
-    
     echo "$PATH"
-
-    killall -I Xvfb
-    exit 0
 
     # initialize the Wine environment and disable the sound driver output (travis-ci doesn't have any dummy ALSA devices)
     WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -u && winetricks sound=disabled
@@ -159,6 +152,6 @@ _fold_start_ '[Uploading Steam Workshop build]'
 
     echo 48700 > steam_appid.txt
     yes NO | env WINEDEBUG=-all wine mbw_workshop_uploader_glsl.exe update -mod tldmod.ini -id 742666341 -icon tldmod.png -changes "$WORKSHOP_DESC"
-    sleep 10 && killall -I steam.exe
+    sleep 10 && killall -I steam.exe %% killall -I Xvfb
 
 _fold_final_
