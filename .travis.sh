@@ -8,9 +8,12 @@ WORKSHOP_DESC="$(git log -1 --pretty=%B)"
 echo "$WORKSHOP_DESC"
 echo "----"
 
-sudo add-apt-repository ppa:wine/wine-builds -yy
-sudo apt-get update -yy
-sudo apt-get install --install-recommends wine-staging winehq-staging -yy
+_fold_start_ "[Installing Wine Staging]"
+    sudo add-apt-repository ppa:wine/wine-builds -yy
+    sudo apt-get update -yy
+    sudo apt-get install --install-recommends wine-staging winehq-staging -yy
+
+_fold_final_
 
 cd ModuleSystem
 
@@ -112,7 +115,7 @@ _fold_start_ '[Initializing Steamworks service]'
     Xvfb :1 -screen 0 800x600x16 > /dev/null &
     export DISPLAY=:1
 
-    cd .. && mkdir steam && chmod 777 steam && cd steam
+    cd .. && mkdir steam && cd steam
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe && curl -LOJs "$STEAM_SS"
 
     # initialize the Wine environment and disable the sound driver output (travis-ci doesn't have any dummy ALSA devices)
@@ -140,7 +143,7 @@ _fold_final_
 
 
 _fold_start_ '[Uploading Steam Workshop build]'
-    cd .. && mv tldmod 'The Last Days of the Third Age'
+    mkdir build && cd build && mv ../../tldmod 'The Last Days of the Third Age'
 
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/mbw_workshop_uploader_glsl.exe
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/steam_api.dll
