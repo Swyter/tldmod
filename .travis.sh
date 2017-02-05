@@ -11,6 +11,7 @@ echo "----"
 cd ModuleSystem
 
 _fold_start_ "[Compiling retail revision $SVNREV]"
+    # add the carriage return 'flip' utility to the local $PATH
     curl -LOJs https://ccrma.stanford.edu/~craig/utility/flip/flip.cpp && mkdir -p ~/.local/bin && g++ flip.cpp -o ~/.local/bin/flip
 
     # disable cheat mode for the generated nightly builds...
@@ -104,13 +105,11 @@ _fold_final_
 
 
 _fold_start_ '[Initializing Steamworks service]'
-    Xvfb :1 -screen 0 800x600x16 &
+    Xvfb :1 -screen 0 800x600x16 > /dev/null &
     export DISPLAY=:1
 
     cd .. && mkdir steam && chmod 777 steam && cd steam
-    curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe
-    curl -LOJs "$STEAM_SS"
-    echo "$PATH"
+    curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe && curl -LOJs "$STEAM_SS"
 
     # initialize the Wine environment and disable the sound driver output (travis-ci doesn't have any dummy ALSA devices)
     WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -u && winetricks sound=disabled
@@ -127,14 +126,10 @@ _fold_start_ '[Initializing Steamworks service]'
             ls -lash && scrot screenshot.png && ls -lash;
             ./imgur.sh screenshot.png;
             
-            ls -lash
-            
             exit 1;
         fi;
 
-        sleep 1;
-        echo $t;
-        ((t--));
+        sleep 1 && echo $[ t-- ];
     done
 
 _fold_final_
@@ -149,8 +144,8 @@ _fold_start_ '[Uploading Steam Workshop build]'
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/tldmod.png
 
     echo 48700 > steam_appid.txt
- 
-    yes NO | env WINEDEBUG=all  wine mbw_workshop_uploader_glsl.exe update -mod tldmod.ini \
+
+    yes NO | env WINEDEBUG=-all wine mbw_workshop_uploader_glsl.exe update -mod tldmod.ini \
                                                                             -id 742666341  \
                                                                           -icon tldmod.png \
                                                                        -changes "$WORKSHOP_DESC"
