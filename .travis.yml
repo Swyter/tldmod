@@ -1,4 +1,4 @@
-sudo: false
+sudo: required
 language: python
 python:
   - "2.7"
@@ -10,9 +10,7 @@ addons:
       - xvfb
       - tree
       - git
-      - wine
       - winetricks
-      - winbind
       - scrot
 
 script: bash ./.travis.sh

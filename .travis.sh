@@ -8,6 +8,10 @@ WORKSHOP_DESC="$(git log -1 --pretty=%B)"
 echo "$WORKSHOP_DESC"
 echo "----"
 
+sudo add-apt-repository ppa:wine/wine-builds -yy
+sudo apt-get update -yy
+sudo apt-get install --install-recommends wine-staging winehq-staging -yy
+
 cd ModuleSystem
 
 _fold_start_ "[Compiling retail revision $SVNREV]"
