@@ -11,7 +11,7 @@ echo "----"
 cd ModuleSystem
 
 _fold_start_ "[Compiling retail revision $SVNREV]"
-    curl https://ccrma.stanford.edu/~craig/utility/flip/flip.cpp -O -J && mkdir -p ~/.local/bin && g++ flip.cpp -o ~/.local/bin/flip
+    curl -LOJs https://ccrma.stanford.edu/~craig/utility/flip/flip.cpp && mkdir -p ~/.local/bin && g++ flip.cpp -o ~/.local/bin/flip
 
     # disable cheat mode for the generated nightly builds...
     sed -i 's/cheat_switch = 1/cheat_switch = 0/' module_constants.py
@@ -150,7 +150,7 @@ _fold_start_ '[Uploading Steam Workshop build]'
 
     echo 48700 > steam_appid.txt
  
-    yes NO | wine mbw_workshop_uploader_glsl.exe update -mod tldmod.ini \
+    yes NO | env WINEDEBUG=all  wine mbw_workshop_uploader_glsl.exe update -mod tldmod.ini \
                                                                             -id 742666341  \
                                                                           -icon tldmod.png \
                                                                        -changes "$WORKSHOP_DESC"

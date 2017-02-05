@@ -12,6 +12,7 @@ addons:
       - git
       - wine
       - winetricks
+      - winbind
       - scrot
 
 script: bash ./.travis.sh
