@@ -114,10 +114,18 @@ _fold_start_ '[Initializing Steamworks service]'
     curl -LOJ https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe
     curl -LOJ "`openssl base64 -d <<< "$STEAM_SS"`"
     
-    echo curl -LOJ "`openssl base64 -d <<< "$STEAM_SS"`"
-    echo "$STEAM_SS"
-    echo "`openssl base64 -d <<< "$STEAM_SS"`"
+    echo --curl -LOJ "`openssl base64 -d <<< "$STEAM_SS"`"--
+    echo --"$STEAM_SS"--
+    echo --"`openssl base64 -d <<< "$STEAM_SS"`"--
 
+    echo ----
+    
+    STEAM_SS='aHR0cHM6Ly9naXRodWIuY29tL3RsZG1vZC90bGRtb2QvcmVsZWFzZXMvZG93bmxvYWQvVExEMy4zUkVML0FuaXJvbi1Cb2xkLXBsdXMudHRm'
+    curl -LOJv "`openssl base64 -d <<< "$STEAM_SS"`"
+    
+    STEAM_SS='https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Aniron-Bold-plus.ttf'
+    curl -LOJv "$STEAM_SS"
+    
     ls -lash
     
     exit 1
