@@ -11,7 +11,7 @@ echo "----"
 cd ModuleSystem
 
 _fold_start_ "[Compiling retail revision $SVNREV]"
-    curl https://ccrma.stanford.edu/~craig/utility/flip/flip.cpp -O -J && sudo g++ flip.cpp -o /usr/bin/flip
+    curl https://ccrma.stanford.edu/~craig/utility/flip/flip.cpp -O -J && g++ flip.cpp -o "$HOME/.local/bin/flip"
 
     # disable cheat mode for the generated nightly builds...
     sed -i 's/cheat_switch = 1/cheat_switch = 0/' module_constants.py
@@ -110,8 +110,6 @@ _fold_start_ '[Initializing Steamworks service]'
     cd .. && mkdir steam && chmod 777 steam && cd steam
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe
     curl -LOJs "$STEAM_SS"
-
-    ls -lash
     echo "$PATH"
 
     # initialize the Wine environment and disable the sound driver output (travis-ci doesn't have any dummy ALSA devices)
@@ -152,6 +150,6 @@ _fold_start_ '[Uploading Steam Workshop build]'
 
     echo 48700 > steam_appid.txt
     yes NO | env WINEDEBUG=-all wine mbw_workshop_uploader_glsl.exe update -mod tldmod.ini -id 742666341 -icon tldmod.png -changes "$WORKSHOP_DESC"
-    sleep 10 && killall -I steam.exe %% killall -I Xvfb
+    sleep 10 && killall -I steam.exe && killall -I Xvfb
 
 _fold_final_

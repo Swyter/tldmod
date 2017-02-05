@@ -11,6 +11,7 @@ addons:
       - tree
       - git
       - wine
+      - winetricks
       - scrot
 
 script: bash ./.travis.sh
