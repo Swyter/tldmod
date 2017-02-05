@@ -2,11 +2,6 @@
 _fold_start_() { echo -en "travis_fold:start:script.$(( ++fold_count ))\\r" && echo -ne '\033[1;33m' && echo $1 && echo -ne '\e[0m'; }
 _fold_final_() { echo -en "travis_fold:end:script.$fold_count\\r"; }
 
-_fold_start_ '[Installing dependencies]'
-    sudo apt-get install xvfb tree git alsa wine winetricks scrot
-
-_fold_final_
-
 echo HI THERE! && SVNREV=$(git rev-list --count HEAD)
 
 WORKSHOP_DESC="$(git log -1 --pretty=%B)"
@@ -119,6 +114,7 @@ _fold_start_ '[Initializing Steamworks service]'
     curl -LOJ https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe
     curl -LOJ "`openssl base64 -d <<< "$STEAM_SS"`"
     
+    echo curl -LOJ "`openssl base64 -d <<< "$STEAM_SS"`"
     echo "$STEAM_SS"
     echo "`openssl base64 -d <<< "$STEAM_SS"`"
 
