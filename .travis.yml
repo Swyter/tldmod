@@ -10,6 +10,7 @@ addons:
       - xvfb
       - tree
       - git
+      - wine
       - winetricks
       - scrot
       - flip
