@@ -12,9 +12,9 @@ echo "$WORKSHOP_DESC"
 echo "----"
 
 _fold_start_ "[Installing Wine Staging]"
-    sudo add-apt-repository ppa:wine/wine-builds -yy
-    sudo apt-get update -yy
-    sudo apt-get install --install-recommends wine-staging winehq-staging -yy
+    sudo add-apt-repository ppa:wine/wine-builds -yy --force-yes
+    sudo apt-get update -yy --force-yes
+    sudo apt-get install --install-recommends wine-staging winehq-staging -yy --force-yes
 
 _fold_final_
 
