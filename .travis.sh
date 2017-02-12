@@ -1,3 +1,6 @@
+
+
+
 # swy: as seen here <https://github.com/travis-ci/travis-ci/issues/2285> but made prettier with custom wrappers
 _fold_start_() { echo -en "travis_fold:start:script.$(( ++fold_count ))\\r" && echo -ne '\033[1;33m' && echo $1 && echo -ne '\e[0m'; }
 _fold_final_() { echo -en "travis_fold:end:script.$fold_count\\r"; }
@@ -18,9 +21,6 @@ _fold_final_
 cd ModuleSystem
 
 _fold_start_ "[Compiling retail revision $SVNREV]"
-    # add the carriage return 'flip' utility to the local $PATH
-    curl -LOJs https://ccrma.stanford.edu/~craig/utility/flip/flip.cpp && mkdir -p ~/.local/bin && g++ flip.cpp -o ~/.local/bin/flip
-
     # disable cheat mode for the generated nightly builds...
     sed -i 's/cheat_switch = 1/cheat_switch = 0/' module_constants.py
 
@@ -112,14 +112,17 @@ _fold_final_
 
 
 _fold_start_ '[Initializing Steamworks service]'
-    Xvfb :1 -screen 0 800x600x16 > /dev/null &
-    export DISPLAY=:1
-
     cd .. && mkdir steam && cd steam
+    
+    Xvfb :1 -screen 0 800x600x16 2> /dev/null &; export DISPLAY=:1
+    
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe && curl -LOJs "$STEAM_SS"
 
     # initialize the Wine environment and disable the sound driver output (travis-ci doesn't have any dummy ALSA devices)
-    WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -u && winetricks sound=disabled
+    WINEDLLOVERRIDES="mscoree,mshtml="
+
+    WINEDEBUG=-all wineboot -u
+    WINEDEBUG=-all winetricks sound=disabled
     WINEDEBUG=-all wine steam -silent -forceservice -no-browser -no-cef-sandbox -opengl -login "$STEAM_AC" "`openssl base64 -d <<< "$STEAM_TK"`" &
 
     ((t = 290)); while ((t > 0)); do
@@ -136,8 +139,11 @@ _fold_start_ '[Initializing Steamworks service]'
             exit 1;
         fi;
 
-        sleep 1 && echo $[ t-- ];
+        sleep 1 && echo ' >>' $[ t-- ];
     done
+    
+    # give it some seconds to settle down
+    sleep 20
 
 _fold_final_
 
@@ -145,8 +151,6 @@ _fold_final_
 _fold_start_ '[Uploading Steam Workshop build]'
     cd .. && mv tldmod 'The Last Days of the Third Age'
     
-    ps
-
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/mbw_workshop_uploader_glsl.exe
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/steam_api.dll
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/tldmod.ini
@@ -158,11 +162,9 @@ _fold_start_ '[Uploading Steam Workshop build]'
                                                                             -id 742666341  \
                                                                           -icon tldmod.png \
                                                                        -changes "$WORKSHOP_DESC"
-
-    ps
     
-    ls -lash
+    ls -lash && ps
     
-    sleep 10 && killall -I steam.exe && killall -I Xvfb
+    sleep 10 && killall -I steam.exe && killall -I Xvfb && rm -rf steam
 
 _fold_final_

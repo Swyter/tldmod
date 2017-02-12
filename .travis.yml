@@ -12,5 +12,6 @@ addons:
       - git
       - winetricks
       - scrot
+      - flip
 
 script: bash ./.travis.sh
