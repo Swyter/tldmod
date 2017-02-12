@@ -120,11 +120,12 @@ _fold_start_ '[Initializing Steamworks service]'
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe && curl -LOJs "$STEAM_SS"
 
     # initialize the Wine environment and disable the sound driver output (travis-ci doesn't have any dummy ALSA devices)
-    WINEDLLOVERRIDES="mscoree,mshtml="
+    export WINEDLLOVERRIDES="mscoree,mshtml="
+    export WINEDEBUG=-all
 
-    WINEDEBUG=-all wineboot -u
-    WINEDEBUG=-all winetricks sound=disabled
-    WINEDEBUG=-all wine steam -silent -forceservice -no-browser -no-cef-sandbox -opengl -login "$STEAM_AC" "`openssl base64 -d <<< "$STEAM_TK"`" &
+    wineboot -u
+    winetricks sound=disabled
+    wine steam -silent -forceservice -no-browser -no-cef-sandbox -opengl -login "$STEAM_AC" "`openssl base64 -d <<< "$STEAM_TK"`" &
 
     ((t = 290)); while ((t > 0)); do
         grep --no-messages 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'OK'                   && echo '>> OK'                   && break;
@@ -159,10 +160,10 @@ _fold_start_ '[Uploading Steam Workshop build]'
 
     echo 48700 > steam_appid.txt
 
-    yes NO | env WINEDEBUG=-all wine mbw_workshop_uploader_glsl.exe update -mod tldmod.ini \
-                                                                            -id 742666341  \
-                                                                          -icon tldmod.png \
-                                                                       -changes "$WORKSHOP_DESC"
+    yes NO | wine mbw_workshop_uploader_glsl.exe update -mod tldmod.ini \
+                                                         -id 742666341  \
+                                                       -icon tldmod.png \
+                                                    -changes "$WORKSHOP_DESC"
     
     ls -lash && ps
     
