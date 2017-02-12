@@ -100,6 +100,9 @@ _fold_start_ "[Packaging and stripping revision $SVNREV into a Steam Workshop bu
     rm -rf ./_*
 
     rm -rf .git
+    
+    # add a watermark to make it clear that this is not the official build
+    convert main.bmp -gravity center -pointsize 30 -fill red -stroke darkred -annotate -10 '(TEST THINGIE)' main.bmp
 
 _fold_final_
 
@@ -123,6 +126,8 @@ _fold_start_ '[Initializing Steamworks service]'
     export WINEDLLOVERRIDES="mscoree,mshtml="
     export WINEDEBUG=-all
 
+    # pre-generate the Wine environment, disable ALSA integration (Travis CI machines don't have virtual sound cards)
+    # and run the SteamWorks service in the background, parse the connection status and continue when finished
     wineboot -u
     winetricks sound=disabled
     wine steam -silent -forceservice -no-browser -no-cef-sandbox -opengl -login "$STEAM_AC" "`openssl base64 -d <<< "$STEAM_TK"`" &
@@ -144,29 +149,42 @@ _fold_start_ '[Initializing Steamworks service]'
         sleep 1 && echo ' >>' $[ t-- ];
     done
     
-    # give it some seconds to settle down
+    # give it some seconds to settle down, slowpoke!
     sleep 20
 
 _fold_final_
 
 
 _fold_start_ '[Uploading Steam Workshop build]'
-    cd .. && mv tldmod 'The Last Days of the Third Age'
+    cd .. && mv tldmod 'The Last Days of the Third Age (TEST THINGIE)'
     
+    # get all we need
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/mbw_workshop_uploader_glsl.exe
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/steam_api.dll
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/tldmod.ini
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/tldmod.png
 
     echo 48700 > steam_appid.txt
+    
+    # don't make the test entry public
+    sed -e 's/visibility = public/visibility = friends only/' tldmod.ini --in-place
+    sed -e 's/The Last Days of the Third Age/The Last Days of the Third Age (TEST THINGIE)/' tldmod.ini --in-place
+    
+    # add a watermark to make it clear that this is not the official build
+    convert tldmod.png -gravity center -pointsize 30 -fill red -stroke darkred -annotate -10 '(TEST THINGIE)' tldmod.png
 
+    # do the actual submission using this (totally stable) work of art
     yes NO | wine mbw_workshop_uploader_glsl.exe update -mod tldmod.ini \
                                                          -id 742666341  \
                                                        -icon tldmod.png \
-                                                    -changes "$WORKSHOP_DESC"
+                                                    -changes "$WORKSHOP_DESC" | tee workshop.log
     
     ls -lash && ps
     
+    # get rid of the resident background processes, we don't want travis-ci to timeout
     sleep 10 && killall -I steam.exe && killall -I Xvfb && rm -rf steam
+    
+    # fail the build if things didn't go as expected
+    grep --no-messages 'Uploading done!' workshop.log || exit 1;
 
 _fold_final_

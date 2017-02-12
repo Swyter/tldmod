@@ -13,5 +13,6 @@ addons:
       - winetricks
       - scrot
       - flip
+      - imagemagick
 
 script: bash ./.travis.sh
