@@ -143,7 +143,9 @@ _fold_final_
 
 
 _fold_start_ '[Uploading Steam Workshop build]'
-    mkdir build && cd build && mv ../../tldmod 'The Last Days of the Third Age'
+    cd .. && mv tldmod 'The Last Days of the Third Age'
+    
+    ps
 
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/mbw_workshop_uploader_glsl.exe
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/steam_api.dll
@@ -156,6 +158,11 @@ _fold_start_ '[Uploading Steam Workshop build]'
                                                                             -id 742666341  \
                                                                           -icon tldmod.png \
                                                                        -changes "$WORKSHOP_DESC"
+
+    ps
+    
+    ls -lash
+    
     sleep 10 && killall -I steam.exe && killall -I Xvfb
 
 _fold_final_
