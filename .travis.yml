@@ -10,10 +10,11 @@ addons:
       - xvfb
       - tree
       - git
-      - wine
       - winetricks
       - scrot
       - flip
       - imagemagick
+      - curl
+      - sed
 
 script: bash ./.travis.sh

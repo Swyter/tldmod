@@ -1,20 +1,37 @@
-
-
-
 # swy: as seen here <https://github.com/travis-ci/travis-ci/issues/2285> but made prettier with custom wrappers
 _fold_start_() { echo -en "travis_fold:start:script.$(( ++fold_count ))\\r" && echo -ne '\033[1;33m' && echo $1 && echo -ne '\e[0m'; }
 _fold_final_() { echo -en "travis_fold:end:script.$fold_count\\r"; }
 
-echo HI THERE! && SVNREV=$(git rev-list --count HEAD)
+_fold_start_ '[Turning original shallow clone into a full one]'
+    git fetch --unshallow
 
-WORKSHOP_DESC="$(git log -1 --pretty=%B)"
+_fold_final_
+
+
+echo HI THERE!
+
+# grab the revision count of the latest merge commit,
+# parse the changelog page to find the previous one
+SVNREV=$(git rev-list --count "`git rev-list --min-parents=2 --max-count=1 HEAD`")
+PREREV=$(curl -s http://steamcommunity.com/sharedfiles/filedetails/changelog/299974223 | \
+         sed -n 's/^.*Equivalent to nightly r\([0-9]*\).*$/\1/p' | head -1)
+
+
+# prefix the new changelog with the standard introduction and
+# make the bullet points and em-dashes pretty
+echo -e "Submitted a new build. Equivalent to nightly r$SVNREV.\r\n\r\n\
+Main changes since the previous r$PREREV build are:\r\n\
+`git log -1 --pretty=%B | sed -e 's/ \*/  •/' -e 's/--/—/'`" > /tmp/desc.txt
+
+WORKSHOP_DESC="`cat '/tmp/desc.txt'`"
+
 echo "$WORKSHOP_DESC"
 echo "----"
 
 _fold_start_ "[Installing Wine Staging]"
-  #  sudo add-apt-repository ppa:wine/wine-builds -yy
-  #  sudo apt-get update -yy
-  #  sudo apt-get install --install-recommends wine-staging winehq-staging -yy --force-yes
+    sudo add-apt-repository ppa:wine/wine-builds -yy
+    sudo apt-get update -yy
+    sudo apt-get install --install-recommends wine-staging winehq-staging -yy --force-yes
 
 _fold_final_
 
