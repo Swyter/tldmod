@@ -21,7 +21,7 @@ PREREV=$(curl -s http://steamcommunity.com/sharedfiles/filedetails/changelog/299
 # make the bullet points and em-dashes pretty
 echo -e "Submitted a new build. Equivalent to nightly r$SVNREV.\r\n\r\n\
 Main changes since the previous r$PREREV build are:\r\n\
-`git log -1 --pretty=%B | sed -e 's/\*/•/' -e 's/--/—/'`" > /tmp/desc.txt
+`git log -1 --pretty=%B`" > /tmp/desc.txt
 
 WORKSHOP_DESC="`cat '/tmp/desc.txt'`"
 
@@ -121,7 +121,7 @@ _fold_start_ "[Packaging and stripping revision $SVNREV into a Steam Workshop bu
     rm -f  ./module-wb.ini
     rm -f  ./game_variables-wb.txt
     rm -f  ./*orc*
-
+    rm -rf ./_*.txt
    #rm -rf ./_*
 
     rm -rf .git
