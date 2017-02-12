@@ -65,9 +65,10 @@ _fold_start_ "[Packaging and stripping revision $SVNREV into a Steam Workshop bu
 
     # strip it accordingly
    #rm -rf ./Data
+    rm -f  ./Data/*.py
+    rm -f  ./Data/*.log
     rm -f  ./Data/*.exe
     rm -f  ./Data/*.bik
-    rm -f  ./Data/*.py
     rm -f  ./Data/*.fxo
     rm -f  ./Data/*.bat
     rm -f  ./Data/*_old.xml
@@ -104,7 +105,7 @@ _fold_start_ "[Packaging and stripping revision $SVNREV into a Steam Workshop bu
     rm -f  ./*.bat
     rm -f  ./*.cmd
     rm -f  ./*.exe
-   #rm -f  ./*.dll
+    rm -f  ./*.dll
     rm -f  ./*.h
     rm -f  ./*src*
     rm -f  ./*.odt
