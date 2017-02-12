@@ -114,7 +114,8 @@ _fold_final_
 _fold_start_ '[Initializing Steamworks service]'
     cd .. && mkdir steam && cd steam
     
-    Xvfb :1 -screen 0 800x600x16 2> /dev/null &; export DISPLAY=:1
+    Xvfb :1 -screen 0 800x600x16 2> /dev/null &
+    export DISPLAY=:1
     
     curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe && curl -LOJs "$STEAM_SS"
 
