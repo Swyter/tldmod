@@ -128,22 +128,6 @@ _fold_start_ '[Final tree view]'
 _fold_final_
 
 
-
-_fold_start_ '[Retrieving Steam command-line client]'
-    cd .. && mkdir steam && cd steam
-    curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
-    
-    ls -lash
-    
-    ls -lash ./linux32
-    
-    chmod +x ./linux32/steamcmd
-    
-    curl -LOJs "$STEAM_SS"
-
-_fold_final_
-
-
 _fold_start_ '[Deploying Steam Workshop build]'
 
     CONT_FLDR='The Last Days of the Third Age (TEST THINGIE)'
@@ -158,8 +142,11 @@ _fold_start_ '[Deploying Steam Workshop build]'
     echo "    'changenote' '$WORKSHOP_DESC' "  >> workshop_entry.vdf
     echo ' }                                '  >> workshop_entry.vdf
 
+
+    curl -sqL 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz' | tar zxvf - && curl -LOJs "$STEAM_SS"
+
     # do the actual submission using this (totally stable) work of art
-    ./steam/steamcmd.sh +login "$STEAM_AC" "`openssl base64 -d <<< "$STEAM_TK"`" +workshop_build_item ../workshop_entry.vdf +quit | tee workshop.log
+    ./steamcmd.sh +login "$STEAM_AC" "`openssl base64 -d <<< "$STEAM_TK"`" +workshop_build_item workshop_entry.vdf +quit | tee workshop.log
 
     # fail the build if things didn't go as expected
     grep --no-messages 'Success.' workshop.log || exit 1;
