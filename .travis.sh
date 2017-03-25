@@ -131,7 +131,15 @@ _fold_final_
 
 _fold_start_ '[Retrieving Steam command-line client]'
     cd .. && mkdir steam && cd steam
-    curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf - && curl -LOJs "$STEAM_SS"
+    curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+    
+    ls -lash
+    
+    ls -lash ./linux32
+    
+    chmod +x ./linux32/steamcmd
+    
+    curl -LOJs "$STEAM_SS"
 
 _fold_final_
 
