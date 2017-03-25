@@ -2,17 +2,13 @@
 _fold_start_() { echo -en "travis_fold:start:script.$(( ++fold_count ))\\r" && echo -ne '\033[1;33m' && echo $1 && echo -ne '\e[0m'; }
 _fold_final_() { echo -en "travis_fold:end:script.$fold_count\\r"; }
 
-_fold_start_ '[Turning original shallow clone into a full one]'
-    git fetch --unshallow
-
-_fold_final_
-
-
 echo HI THERE!
 
 # grab the revision count of the latest merge commit,
 # parse the changelog page to find the previous one
-SVNREV=$(git rev-list --count "`git rev-list --min-parents=2 --max-count=1 HEAD`")
+SVNREV=$(curl -s https://api.bitbucket.org/2.0/repositories/Swyter/tld-downloads/downloads | \
+         sed -s 's/ /\n/g' | sed -n 's/.*_r\([0-9]*\)\.7z.*/\1/p' | head -1)
+
 PREREV=$(curl -s http://steamcommunity.com/sharedfiles/filedetails/changelog/299974223 | \
          sed -n 's/^.*Equivalent to nightly r\([0-9]*\).*$/\1/p' | head -1)
 
@@ -27,13 +23,6 @@ WORKSHOP_DESC="`cat '/tmp/desc.txt'`"
 
 echo "$WORKSHOP_DESC"
 echo "----"
-
-_fold_start_ "[Installing Wine Staging]"
-    sudo add-apt-repository ppa:wine/wine-builds -yy
-    sudo apt-get update -yy
-    sudo apt-get install --install-recommends wine-staging winehq-staging -yy --force-yes
-
-_fold_final_
 
 cd ModuleSystem
 
@@ -139,77 +128,32 @@ _fold_start_ '[Final tree view]'
 _fold_final_
 
 
-_fold_start_ '[Initializing Steamworks service]'
+
+_fold_start_ '[Retrieving Steam command-line client]'
     cd .. && mkdir steam && cd steam
-    
-    Xvfb :1 -screen 0 800x600x16 2> /dev/null &
-    export DISPLAY=:1
-    
-    curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/Steam.exe && curl -LOJs "$STEAM_SS"
-
-    # initialize the Wine environment and disable the sound driver output (travis-ci doesn't have any dummy ALSA devices)
-    export WINEDLLOVERRIDES="mscoree,mshtml="
-    export WINEDEBUG=-all
-
-    # pre-generate the Wine environment, disable ALSA integration (Travis CI machines don't have virtual sound cards)
-    # and run the SteamWorks service in the background, parse the connection status and continue when finished
-    wineboot -u
-    winetricks sound=disabled
-    wine steam -silent -forceservice -no-browser -no-cef-sandbox -opengl -login "$STEAM_AC" "`openssl base64 -d <<< "$STEAM_TK"`" &
-
-    ((t = 290)); while ((t > 0)); do
-        grep --no-messages 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'OK'                   && echo '>> OK'                   && break;
-        grep --no-messages 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'Invalid Password'     && echo '>> Invalid Password'     && exit 1;
-        grep --no-messages 'RecvMsgClientLogOnResponse()' logs/connection_log.txt | grep 'Account Logon Denied' && echo '>> Account Logon Denied' && exit 1;
-
-        if ((t == 1)); then
-            curl -LOJ https://raw.githubusercontent.com/tremby/imgur.sh/master/imgur.sh && chmod +x ./imgur.sh
-            
-            ls -lash && scrot screenshot.png && ls -lash;
-            ./imgur.sh screenshot.png;
-            
-            exit 1;
-        fi;
-
-        sleep 1 && echo ' >>' $[ t-- ];
-    done
-    
-    # give it some seconds to settle down, slowpoke!
-    sleep 20
+    curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf - && curl -LOJs "$STEAM_SS"
 
 _fold_final_
 
 
-_fold_start_ '[Uploading Steam Workshop build]'
-    cd .. && mv tldmod 'The Last Days of the Third Age (TEST THINGIE)'
-    
-    # get all we need
-    curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/mbw_workshop_uploader_glsl_pdf_no_ogg.exe
-    curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/steam_api.dll
-    curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/tldmod.ini
-    curl -LOJs https://github.com/tldmod/tldmod/releases/download/TLD3.3REL/tldmod.png
+_fold_start_ '[Deploying Steam Workshop build]'
 
-    echo 48700 > steam_appid.txt
-    
-    # don't make the test entry public
-    sed -e 's/visibility = public/visibility = friends only/' tldmod.ini --in-place
-    sed -e 's/The Last Days of the Third Age/The Last Days of the Third Age (TEST THINGIE)/' tldmod.ini --in-place
-    
-    # add a watermark to make it clear that this is not the official build
-    convert tldmod.png -gravity center -pointsize 30 -fill red -stroke darkred -annotate -10 '(TEST THINGIE)' tldmod.png
+    CONT_FLDR='The Last Days of the Third Age (TEST THINGIE)'
+
+    cd .. && mv tldmod $CONT_FLDR
+
+    echo ' "workshopitem"                   '   > workshop_entry.vdf
+    echo ' {                                '  >> workshop_entry.vdf
+    echo '    "appid"               "48700" '  >> workshop_entry.vdf
+    echo '    "publishedfileid" "742606214" '  >> workshop_entry.vdf
+    echo "    'contentfolder'  '$CONT_FLDR' "  >> workshop_entry.vdf
+    echo "    'changenote' '$WORKSHOP_DESC' "  >> workshop_entry.vdf
+    echo ' }                                '  >> workshop_entry.vdf
 
     # do the actual submission using this (totally stable) work of art
-    yes NO | wine mbw_workshop_uploader_glsl_pdf_no_ogg.exe update -mod tldmod.ini \
-                                                                    -id 742666341  \
-                                                                  -icon tldmod.png \
-                                                               -changes "$WORKSHOP_DESC" | tee workshop.log
-    
-    ls -lash && ps
-    
-    # get rid of the resident background processes, we don't want travis-ci to timeout
-    sleep 10 && killall -I steam.exe && killall -I Xvfb && rm -rf steam
-    
+    ./steam/steamcmd.sh +login "$STEAM_AC" "`openssl base64 -d <<< "$STEAM_TK"`" +workshop_build_item ../workshop_entry.vdf +quit | tee workshop.log
+
     # fail the build if things didn't go as expected
-    grep --no-messages 'Uploading done!' workshop.log || exit 1;
+    grep --no-messages 'Success.' workshop.log || exit 1;
 
 _fold_final_
