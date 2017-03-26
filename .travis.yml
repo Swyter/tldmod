@@ -13,5 +13,6 @@ addons:
       - imagemagick
       - curl
       - sed
+      - lib32gcc1
 
 script: bash ./.travis.sh
