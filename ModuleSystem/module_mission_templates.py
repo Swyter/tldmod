@@ -44,6 +44,15 @@ af_prisoner       = af_override_horse | af_override_weapons | af_override_head |
 ####################################################################################################################
 ## CUSTOM CAMERA by dunde, modified to add fixed-camera + implemented by Kham (WB Only)
 ####################################################################################################################
+
+fade =  ((is_a_wb_mt==1) and [
+
+        (ti_after_mission_start, 0, 0, [],
+          [(mission_cam_set_screen_color,        0xFF000000), 
+           (mission_cam_animate_to_screen_color, 0x00000000, 2500)])
+        
+        ] or [])
+
 khams_custom_player_camera = ((is_a_wb_mt==1) and [
 
   #-- numeric constants
@@ -302,7 +311,6 @@ khams_custom_player_camera = ((is_a_wb_mt==1) and [
 tld_common_battle_scripts = [
 	#tld_fix_viewpoint,
 	#tld_wargs_attack_horses, # WIP (CppCoder)
-	tld_damage_fallen_riders, tld_track_riders,
 	tld_slow_wounded,
  	custom_tld_spawn_troop, custom_tld_init_battle,
 	custom_tld_horses_hate_trolls, custom_troll_hitting,
@@ -314,7 +322,7 @@ tld_common_battle_scripts = [
 	custom_track_companion_casualties,
 	common_battle_healing,
 	#common_battle_kill_underwater,
-] + tld_morale_triggers + khams_custom_player_camera #Custom Cam triggers
+] + tld_morale_triggers + fade + khams_custom_player_camera + tld_fallen_riders_get_damaged
 
 
 tld_siege_battle_scripts = [
@@ -326,15 +334,14 @@ tld_siege_battle_scripts = [
 	custom_troll_hitting,
 	tld_remove_galadriel,
 	#common_battle_kill_underwater,
-] + khams_custom_player_camera #Custom Cam triggers
+] + fade + khams_custom_player_camera #Custom Cam triggers
 
 
 tld_common_peacetime_scripts = [
 	#tld_fix_viewpoint,
 	tld_player_cant_ride,
 	dungeon_darkness_effect,
-] + custom_tld_bow_to_kings + khams_custom_player_camera #Custom Cam triggers
-
+] + custom_tld_bow_to_kings +  fade + khams_custom_player_camera #Custom Cam triggers
 
 
 tld_common_wb_muddy_water = ((is_a_wb_mt==1) and [
@@ -531,7 +538,7 @@ mission_templates = [ # not used in game
      ],
     tld_common_wb_muddy_water+
     tld_common_peacetime_scripts +[
-
+       
 	(1, 0, ti_once, [],[ # set walkers, music and ambient sounds
 			(get_player_agent_no, "$current_player_agent"),
 			(try_begin),
@@ -558,8 +565,15 @@ mission_templates = [ # not used in game
 				(try_begin),(gt,":a",0),(play_sound, ":a", sf_looping),(try_end),
 			(else_try),
 				(play_sound, "$bs_night_sound", sf_looping),
-			(try_end),			
+			(try_end),
 			]),
+  (10, 0, ti_once, [], [ # Kham - Set Tutorial Message RE: Rumours
+      (try_begin),
+        (eq, "$first_time_town", 0),
+        (tutorial_message, "@While visiting towns, settlements and camps, you can talk to people walking around. Members of different factions have different things to say - some will let you in on their own thoughts, others will share rumours. Both could merely give you a better understanding of the person's culture and faction, or they might hold clues to finding secret locations, or tips and tricks for travelling through the Wilderness and fighting in the War of the Ring.",0,15),
+        (assign, "$first_time_town",1),
+      (try_end),
+      ]),
 	(ti_before_mission_start, 0, 0, [], [
 			(call_script, "script_change_banners_and_chest"),
 			(try_begin),# remove beam bridges in osgiliath (for non battle scenes)
@@ -661,7 +675,8 @@ mission_templates = [ # not used in game
 			(lt, ":dist", 300),
 			(party_set_slot, "$current_town", slot_weaponsmith_visited, 1),
 			(party_set_slot, "$current_town", slot_center_visited, 1), # assume visited when found at least 1 merchant
-			(display_message, "@You_have_found_the_local_smithy..."),
+			(display_message, "@You_have_found_the_local_smithy... (+50 XP)"),
+      (add_xp_as_reward, 50),
 		(try_end),      
 		(try_begin),
 			(party_slot_eq, "$current_town", slot_elder_visited, 0),
@@ -671,7 +686,8 @@ mission_templates = [ # not used in game
 			(lt, ":dist", 300),
 			(party_set_slot, "$current_town", slot_elder_visited, 1),
 			(party_set_slot, "$current_town", slot_center_visited, 1), # assume visited when found at least 1 merchant
-			(display_message, "@You_have_found_the_local_authority..."),
+			(display_message, "@You_have_found_the_local_authority...(+50 XP)"),
+      (add_xp_as_reward, 50),
 		(try_end),      
 		(try_begin),
 			(party_slot_eq, "$current_town", slot_merchant_visited, 0),
@@ -681,7 +697,8 @@ mission_templates = [ # not used in game
 			(lt, ":dist", 300),
 			(party_set_slot, "$current_town", slot_merchant_visited, 1),
 			(party_set_slot, "$current_town", slot_center_visited, 1), # assume visited when found at least 1 merchant
-			(display_message, "@You_have_found_the_local_warehouse..."),
+			(display_message, "@You_have_found_the_local_warehouse...(+50 XP)"),
+      (add_xp_as_reward, 50),
 		(try_end)]),
 ]),
 ( "visit_town_castle",0,-1,
@@ -960,8 +977,8 @@ mission_templates = [ # not used in game
 
 ( "lead_charge",mtf_battle_mode,charge,
   "You lead your men to battle.",
-	[(1,mtef_defenders|mtef_team_0,0,aif_start_alarmed,12,[]),(0,mtef_defenders|mtef_team_0,0,aif_start_alarmed,0,[]),
-     (4,mtef_attackers|mtef_team_1,0,aif_start_alarmed,12,[]),(4,mtef_attackers|mtef_team_1,0,aif_start_alarmed,0,[]),
+	[(1,mtef_defenders|mtef_team_0,0,aif_start_alarmed,18,[]),(0,mtef_defenders|mtef_team_0,0,aif_start_alarmed,0,[]),
+     (4,mtef_attackers|mtef_team_1,0,aif_start_alarmed,18,[]),(4,mtef_attackers|mtef_team_1,0,aif_start_alarmed,0,[]),
      (5,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),  # this needs be the 5th entry, for WARGS
      (6,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),  # this needs be the 6th entry, for WARGS
      (7,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),  # this needs be the 7th entry, for WARGS
@@ -1006,23 +1023,34 @@ mission_templates = [ # not used in game
 			(troop_get_inventory_slot_modifier,"$horse_mod","trp_player",8),
 			]),
 	(1, 0, 5,  [
-			(lt,"$defender_reinforcement_stage",2),
+			(lt,"$defender_reinforcement_stage",8),
 			(store_mission_timer_a,":mission_time"),
 			(ge,":mission_time",10),
 			(store_normalized_team_count,":num_defenders", 0),
-			(lt,":num_defenders",6)
+			(lt,":num_defenders",10)
 			],[
-			(add_reinforcements_to_entry,0,7),
+			(add_reinforcements_to_entry,0,10),
 			(val_add,"$defender_reinforcement_stage",1)]),
 	(1, 0, 5, [
-			(lt,"$attacker_reinforcement_stage",2),
+			(lt,"$attacker_reinforcement_stage",8),
 			(store_mission_timer_a,":mission_time"),
 			(ge,":mission_time",10),
 			(store_normalized_team_count,":num_attackers", 1),
-			(lt,":num_attackers",6)
+			(lt,":num_attackers",10)
 			],[
-			(add_reinforcements_to_entry,3,7),
+			(add_reinforcements_to_entry,3,10),
 			(val_add,"$attacker_reinforcement_stage",1)]),
+  (6, 0 , ti_once, [
+      (eq, "$tld_option_formations", 1),
+      (le, "$formations_tutorial", 1)],
+      [(try_begin),
+        (eq, "$formations_tutorial", 0),
+        (tutorial_message, "@In The Last Days of the Third Age, your troops will position themselves and hold at the beginning of each battle, instead of blindly charging.^^To order your troops into formation, press 'J' for Ranks, 'K' for Shield-Wall, 'L' for Wedge, ';' for Square. To undo the formation, press 'U'. ^If your troops are fleeing, you can press 'V' to rally them. You get only a limited amount of rallies per battle, and the amount depends on your leadership and charisma.", 0 , 15),
+       (else_try),
+        (tutorial_message, "@The Last Days of the Third Age has implemented a Custom Camera in order to bypass the current camera limitation with regards to shorter races (e.g Orcs and Dwarves).^^Press CTRL + END to cycle through the 2 camera modes: Fixed Position and Free-Mode.^^Fixed position is the optimal position for all races, however it cannot be configured. You can press CTRL+Left/Right Arrow Keys to switch shoulders.^^Free-Mode Camera puts the character in the middle of the screen. You can press CTRL+Up/Down arrow keys to tilt the camera and CTRL+ Numpad +/- to zoom.^^See Info Pages for how to control the different camera modes.", 0 , 15),
+      (try_end),
+      (val_add, "$formations_tutorial", 1),
+      ]),
 	#AI Triggers
 	(0, 0, ti_once,[(eq, "$tld_option_formations", 0),(store_mission_timer_a,":mission_time"),(ge,":mission_time",2)],[
 			(call_script, "script_select_battle_tactic"),
@@ -1577,7 +1605,7 @@ mission_templates = [ # not used in game
 	
    # Triggers
   tld_common_wb_muddy_water+
-  khams_custom_player_camera+
+  tld_common_battle_scripts+
   common_deathcam_triggers + [
   
 
@@ -1639,13 +1667,14 @@ mission_templates = [ # not used in game
     (try_end),
     # Apply health changes...
     (try_begin),
-      (eq|this_or_next, "$battle_won", 1),
+      (this_or_next|eq, "$battle_won", 1),
       (main_hero_fallen),
       (try_for_agents, ":agent"),
+        (gt, ":agent",0),
         (agent_is_human, ":agent"),
         (agent_get_troop_id, ":troop", ":agent"),
         (troop_is_hero, ":troop"),
-        (eq|this_or_next, ":troop", "trp_player"),
+        (this_or_next|eq, ":troop", "trp_player"),
         (is_between, ":troop", companions_begin, companions_end),
         (store_agent_hit_points,":hp",":agent",0),
         (call_script, "script_get_max_skill_of_player_party", "skl_wound_treatment"),
@@ -1671,14 +1700,14 @@ mission_templates = [ # not used in game
 
 #kham - Ring Hunters - End
 
-### Defend / Raid Village MT Start (kham)###
+### Defend Village MT Start (kham)###
 
  (
     "village_attack_bandits",mtf_battle_mode|mtf_synch_inventory,charge,
     "You lead your men to battle.",
     [
       # Player
-      (0,mtef_team_0|mtef_use_exact_number,0,aif_start_alarmed,10,[]),
+      (0,mtef_team_0|mtef_use_exact_number,0,aif_start_alarmed,14,[]),
 
       # Companions (Add more for more companions)
       (1,mtef_visitor_source|mtef_team_0,0,0,1,[]),
@@ -1717,10 +1746,583 @@ mission_templates = [ # not used in game
    ],
   # Triggers
   tld_common_wb_muddy_water+
-  khams_custom_player_camera+
+  tld_common_battle_scripts+
   common_deathcam_triggers + [
   
 
+  common_battle_on_player_down,
+
+  # Make the teams enemies...
+  (ti_before_mission_start, 0, 0, [], [(team_set_relation, 0, 1, -1),(assign, "$battle_won", 0)]),
+
+  (0, 0, ti_once, 
+  [
+
+    # Make enemies charge...
+    (set_show_messages, 0),
+      (team_give_order, 1, grc_everyone, mordr_charge),
+    (set_show_messages, 1),
+  ], 
+  []),
+
+  (1, 60, ti_once, 
+  [
+    (store_mission_timer_a,reg(1)),
+    (ge,reg(1),10),
+    (all_enemies_defeated, 1),
+    (set_mission_result,1),
+    (display_message,"str_msg_battle_won"),
+    (assign,"$battle_won",1),
+    (assign, "$g_battle_result", 1),
+    (call_script, "script_music_set_situation_with_culture", mtf_sit_victorious),
+  ],
+  [
+    (finish_mission, 1)
+  ]),
+
+  (ti_tab_pressed,0,0,[],
+  [
+    (try_begin),
+      (eq, "$battle_won", 1),
+      (jump_to_menu, "mnu_village_quest_result"),
+      (finish_mission),
+    (else_try),
+      (main_hero_fallen),
+      (jump_to_menu, "mnu_village_quest_result"),
+      (finish_mission),
+    (try_end),
+    # Apply health changes...
+    (try_begin),
+      (this_or_next|eq, "$battle_won", 1),
+      (main_hero_fallen),
+      (try_for_agents, ":agent"),
+        (gt, ":agent",0),
+        (agent_is_human, ":agent"),
+        (agent_get_troop_id, ":troop", ":agent"),
+        (troop_is_hero, ":troop"),
+        (this_or_next|eq, ":troop", "trp_player"),
+        (is_between, ":troop", companions_begin, companions_end),
+        (store_agent_hit_points,":hp",":agent",0),
+        (call_script, "script_get_max_skill_of_player_party", "skl_wound_treatment"),
+        (store_mul, ":medic", reg0, 5),
+        (val_add, ":hp", ":medic"),
+        (val_clamp, ":hp", 0, 100),
+        (troop_set_health, ":troop", ":hp"),
+      (try_end),
+    (try_end),
+  ]),
+  
+  common_inventory_not_available, 
+  common_music_situation_update,
+  common_battle_check_friendly_kills,
+  common_battle_check_victory_condition,
+  common_battle_victory_display,
+  common_battle_inventory,      
+  common_battle_order_panel,
+  common_battle_order_panel_tick,
+      
+    ],
+  ),
+
+
+### Raid Village MT Start (kham)###
+
+ (
+    "village_attack_farmers",mtf_battle_mode|mtf_synch_inventory,charge,
+    "You lead your men to battle.",
+    [
+      # Enemies
+      (0,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+      (1,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+      (2,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+      (3,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+      (4,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+      (5,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+      (6,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+      (7,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+      (8,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+      (9,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+      (10,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+      (11,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[itm_practice_staff]),
+      (12,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+      (13,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+      (14,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+      (15,mtef_visitor_source|mtef_team_0,0,aif_start_alarmed,1,[]),
+     
+
+      # Player:
+      (16,mtef_team_1|mtef_attackers|mtef_use_exact_number,0,aif_start_alarmed,14,[]),
+     
+      # Companions (Add more for more companions)
+      (17,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (18,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (19,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (20,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (21,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (22,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (23,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (24,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (25,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (26,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (27,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (28,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (29,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+
+   ],
+  # Triggers
+  tld_common_wb_muddy_water+
+  tld_common_battle_scripts+
+  common_deathcam_triggers + [
+  
+
+  common_battle_on_player_down,
+
+  # Make the teams enemies...
+  (ti_before_mission_start, 0, 0, [], [(team_set_relation, 1, 0, -1),(assign, "$battle_won", 0)]),
+
+  (0, 0, ti_once, 
+  [
+
+    # Make enemies charge...
+    (set_show_messages, 0),
+      (team_give_order, 0, grc_everyone, mordr_charge),
+    (set_show_messages, 1),
+  ], 
+  []),
+
+  (1, 60, ti_once, 
+  [
+    (store_mission_timer_a,reg(1)),
+    (ge,reg(1),10),
+    (all_enemies_defeated, 0),
+    (set_mission_result,1),
+    (display_message,"str_msg_battle_won"),
+    (assign,"$battle_won",1),
+    (assign, "$g_battle_result", 1),
+    (call_script, "script_music_set_situation_with_culture", mtf_sit_victorious),
+  ],
+  [
+    (finish_mission, 1)
+  ]),
+
+  (ti_tab_pressed,0,0,[],
+  [
+    (try_begin),
+      (eq, "$battle_won", 1),
+      (jump_to_menu, "mnu_village_quest_result"),
+      (finish_mission),
+    (else_try),
+      (main_hero_fallen),
+      (jump_to_menu, "mnu_village_quest_result"),
+      (finish_mission),
+    (try_end),
+    # Apply health changes...
+    (try_begin),
+      (this_or_next|eq, "$battle_won", 1),
+      (main_hero_fallen),
+      (try_for_agents, ":agent"),
+        (gt, ":agent",0),
+        (agent_is_human, ":agent"),
+        (agent_get_troop_id, ":troop", ":agent"),
+        (troop_is_hero, ":troop"),
+        (this_or_next|eq, ":troop", "trp_player"),
+        (is_between, ":troop", companions_begin, companions_end),
+        (store_agent_hit_points,":hp",":agent",0),
+        (call_script, "script_get_max_skill_of_player_party", "skl_wound_treatment"),
+        (store_mul, ":medic", reg0, 5),
+        (val_add, ":hp", ":medic"),
+        (val_clamp, ":hp", 0, 100),
+        (troop_set_health, ":troop", ":hp"),
+      (try_end),
+    (try_end),
+  ]),
+  
+  common_inventory_not_available, 
+  common_music_situation_update,
+  common_battle_check_friendly_kills,
+  common_battle_check_victory_condition,
+  common_battle_victory_display,
+  common_battle_inventory,      
+  common_battle_order_panel,
+  common_battle_order_panel_tick,
+      
+    ],
+  ),
+
+### Defend / Raid Village MT End (kham)###
+
+### Destroy Scout Camp MT Start (kham)###
+
+ (
+    "destroy_scout_camp",mtf_battle_mode|mtf_synch_inventory,charge,
+    "You lead your men to battle.",
+    [
+      # Player
+      (0,mtef_team_0|mtef_attackers|mtef_use_exact_number,0,aif_start_alarmed,12,[]),
+
+      # Companions (Add more for more companions)
+      (1,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (2,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (3,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (4,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (5,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (6,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (7,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (8,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (9,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (10,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (11,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (12,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (13,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (14,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (15,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+     
+
+      # Enemies:
+      (16,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (17,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (18,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (19,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (20,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (21,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (22,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (23,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (24,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (25,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (26,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (27,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (28,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (29,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+
+   ],
+  # Triggers
+  tld_common_wb_muddy_water+
+  tld_common_battle_scripts+
+  common_deathcam_triggers + [
+  
+
+  common_battle_on_player_down,
+
+  # Make the teams enemies...
+  (ti_before_mission_start, 0, 0, [], [(team_set_relation, 0, 1, -1),(assign, "$battle_won", 0)]),
+
+  (0, 0, ti_once, 
+  [
+    #(str_store_troop_name, s1, reg20),
+    #(display_message, "@DEBUG: Enemy to spawn: {s1}"),
+    #(display_message, "@DEBUG: Enemies to spawn: {reg21}"),
+
+    # Make enemies charge...
+    (set_show_messages, 0),
+      (team_give_order, 1, grc_everyone, mordr_charge),
+    (set_show_messages, 1),
+  ], 
+  []),
+
+  (1, 60, ti_once, 
+  [
+    (store_mission_timer_a,reg(1)),
+    (ge,reg(1),10),
+    (all_enemies_defeated, 1),
+    (set_mission_result,1),
+    (display_message,"str_msg_battle_won"),
+    (assign,"$battle_won",1),
+    (assign, "$g_battle_result", 1),
+    (call_script, "script_music_set_situation_with_culture", mtf_sit_victorious),
+  ],
+  [
+    (finish_mission, 1)
+  ]),
+
+  (ti_tab_pressed,0,0,[],
+  [
+    (try_begin),
+      (eq, "$battle_won", 1),
+      (jump_to_menu, "mnu_destroy_scout_camp_quest_result"),
+      (finish_mission),
+    (else_try),
+      (main_hero_fallen),
+      (jump_to_menu, "mnu_destroy_scout_camp_quest_result"),
+      (finish_mission),
+    (try_end),
+    # Apply health changes...
+    (try_begin),
+      (this_or_next|eq, "$battle_won", 1),
+      (main_hero_fallen),
+      (try_for_agents, ":agent"),
+        (gt, ":agent",0),
+        (agent_is_human, ":agent"),
+        (agent_get_troop_id, ":troop", ":agent"),
+        (troop_is_hero, ":troop"),
+        (this_or_next|eq, ":troop", "trp_player"),
+        (is_between, ":troop", companions_begin, companions_end),
+        (store_agent_hit_points,":hp",":agent",0),
+        (call_script, "script_get_max_skill_of_player_party", "skl_wound_treatment"),
+        (store_mul, ":medic", reg0, 5),
+        (val_add, ":hp", ":medic"),
+        (val_clamp, ":hp", 0, 100),
+        (troop_set_health, ":troop", ":hp"),
+      (try_end),
+    (try_end),
+  ]),
+  
+  common_inventory_not_available, 
+  common_music_situation_update,
+  common_battle_check_friendly_kills,
+  common_battle_check_victory_condition,
+  common_battle_victory_display,
+  common_battle_inventory,      
+  common_battle_order_panel,
+  common_battle_order_panel_tick,
+      
+    ],
+  ),
+
+
+### Destroy Scout Camp MT End (kham)###
+
+## Amath Dollen Fortress - Talk - MT Start (Kham)
+
+( "amath_dollen_peace",0,-1,
+  "You approach the bandit fortress.",
+    [(0,mtef_team_0,af_override_horse,0,1,[]),
+     (2,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (3,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (4,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (5,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (6,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (7,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (8,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (9,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (10,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (11,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (12,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (13,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (14,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (15,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (16,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (17,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (18,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (19,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (20,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (21,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (22,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (23,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (24,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (25,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (26,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (27,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (28,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+
+     ],
+    tld_common_wb_muddy_water +
+    tld_common_peacetime_scripts + [
+      (ti_inventory_key_pressed, 0, 0, [(set_trigger_result,1)], []),
+      (ti_tab_pressed          , 0, 0, [(set_trigger_result,1)], []),
+    (0, 0, ti_once, [], [#(set_fog_distance, 150, 0xFF736252)
+          (call_script, "script_music_set_situation_with_culture", 0)]),    
+]),
+
+## Amath Dollen Fortress MT Start (Kham)###
+
+ (
+    "amath_dollen_attack",mtf_battle_mode|mtf_synch_inventory,charge,
+    "You lead your men to battle.",
+    [
+      # Player
+      (0,mtef_team_0|mtef_use_exact_number,af_override_horse,aif_start_alarmed,16,[]),
+
+      # Companions (Add more for more companions)
+      (1,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (2,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (3,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (4,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (5,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (6,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (7,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (8,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (9,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (10,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (11,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (12,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (13,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (14,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+      (15,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+     
+
+      # Enemies:
+      (16,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (17,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (18,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (19,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (20,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (21,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (22,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (23,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (24,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (25,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (26,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (27,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (28,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (29,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (30,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+      (31,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
+   ],
+
+  # Triggers
+  tld_common_wb_muddy_water+
+  tld_common_battle_scripts+
+  common_deathcam_triggers + [
+  
+
+  common_battle_on_player_down,
+
+  # Make the teams enemies...
+  (ti_before_mission_start, 0, 0, [], [
+    (set_rain,1,100),
+    (team_set_relation, 0, 1, -1),
+    (team_set_relation, 6,1, -1),
+    (assign, "$gate_aggravator_agent", -1),
+    (assign, "$battle_won", 0)
+  ]),
+
+  (0, 0, ti_once, 
+  [
+    #(str_store_troop_name, s1, reg20),
+    #(display_message, "@DEBUG: Enemy to spawn: {s1}"),
+    #(display_message, "@DEBUG: Enemies to spawn: {reg21}"),
+
+    # Make enemies charge...
+    (set_show_messages, 0),
+      (team_give_order, 1, grc_infantry, mordr_charge),
+      (team_give_order, 1, grc_archers, mordr_hold),
+    (set_show_messages, 1),
+
+    #Fog
+    (set_fog_distance, 200, 0xCCCCCC),
+
+      # put gate aggravator in place
+    (try_begin),
+      (neq, "$gate_aggravator_agent",-1),
+      (eq, "$gate_breached",0),
+      (entry_point_get_position, pos13, 39),
+      (agent_set_scripted_destination,"$gate_aggravator_agent",pos13,1),
+      (agent_set_position,"$gate_aggravator_agent",pos13),
+      (agent_set_hit_points,"$gate_aggravator_agent",100,0),
+    (try_end),
+  ], 
+  []),
+
+  (1, 60, ti_once, 
+  [
+    (store_mission_timer_a,reg(1)),
+    (ge,reg(1),10),
+    (all_enemies_defeated, 5),
+    (set_mission_result,1),
+    (display_message,"str_msg_battle_won"),
+    (assign,"$battle_won",1),
+    (assign, "$g_battle_result", 1),
+    (call_script, "script_music_set_situation_with_culture", mtf_sit_victorious),
+  ],
+  [
+    (finish_mission, 1)
+  ]),
+
+  (ti_tab_pressed,0,0,[],
+  [
+    (try_begin),
+      (eq, "$battle_won", 1),
+      (jump_to_menu, "mnu_village_quest_result"),
+      (finish_mission),
+    (else_try),
+      (main_hero_fallen),
+      (jump_to_menu, "mnu_village_quest_result"),
+      (finish_mission),
+    (try_end),
+    # Apply health changes...
+    (try_begin),
+      (this_or_next|eq, "$battle_won", 1),
+      (main_hero_fallen),
+      (try_for_agents, ":agent"),
+        (gt, ":agent",0),
+        (agent_is_human, ":agent"),
+        (agent_get_troop_id, ":troop", ":agent"),
+        (troop_is_hero, ":troop"),
+        (this_or_next|eq, ":troop", "trp_player"),
+        (is_between, ":troop", companions_begin, companions_end),
+        (store_agent_hit_points,":hp",":agent",0),
+        (call_script, "script_get_max_skill_of_player_party", "skl_wound_treatment"),
+        (store_mul, ":medic", reg0, 5),
+        (val_add, ":hp", ":medic"),
+        (val_clamp, ":hp", 0, 100),
+        (troop_set_health, ":troop", ":hp"),
+      (try_end),
+    (try_end),
+  ]),
+
+  
+  common_inventory_not_available, 
+  common_music_situation_update,
+  common_battle_check_friendly_kills,
+  common_battle_check_victory_condition,
+  common_battle_victory_display,
+  common_battle_inventory,      
+  common_battle_order_panel,
+  common_battle_order_panel_tick,
+      
+    ],
+  ),
+
+
+### Against Siege
+
+(
+    "amath_dollen_defend",mtf_battle_mode|mtf_synch_inventory,charge,
+    "You defend the fortress.",
+    [
+      # Player
+      (0,mtef_team_0|mtef_attackers,af_override_horse,aif_start_alarmed,1,[]),
+
+      # Companions (Add more for more companions)
+      (1,mtef_attackers|mtef_use_exact_number|mtef_infantry_first|mtef_team_0,0,0,2,[]),
+      (2,mtef_attackers|mtef_use_exact_number|mtef_infantry_first|mtef_team_0,0,0,2,[]),
+      (3,mtef_attackers|mtef_use_exact_number|mtef_archers_first|mtef_team_0,0,0,1,[]),
+      (4,mtef_attackers|mtef_use_exact_number|mtef_archers_first|mtef_team_0,0,0,1,[]),
+      (5,mtef_attackers|mtef_use_exact_number|mtef_archers_first|mtef_team_0,0,0,1,[]),
+      (6,mtef_attackers|mtef_use_exact_number|mtef_archers_first|mtef_team_0,0,0,1,[]),
+      (7,mtef_attackers|mtef_use_exact_number|mtef_archers_first|mtef_team_0,0,0,1,[]),
+      (8,mtef_attackers|mtef_use_exact_number|mtef_archers_first|mtef_team_0,0,0,1,[]),
+      (9,mtef_attackers|mtef_use_exact_number|mtef_archers_first|mtef_team_0,0,0,1,[]),
+      (10,mtef_attackers|mtef_use_exact_number|mtef_archers_first|mtef_team_0,0,0,1,[]),
+      (11,mtef_attackers|mtef_use_exact_number|mtef_archers_first|mtef_team_0,0,0,1,[]),
+      (12,mtef_attackers|mtef_use_exact_number|mtef_archers_first|mtef_team_0,0,0,1,[]),
+      (13,mtef_attackers|mtef_use_exact_number|mtef_archers_first|mtef_team_0,0,0,1,[]),
+      (14,mtef_attackers|mtef_use_exact_number|mtef_archers_first|mtef_team_0,0,0,1,[]),
+      (15,mtef_attackers|mtef_use_exact_number|mtef_archers_first|mtef_team_0,0,0,1,[]),
+
+      # Enemies:
+      (16,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (17,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (18,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (19,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (20,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (21,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (22,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (23,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (24,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (25,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (26,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (27,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (28,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+      (29,mtef_visitor_source|mtef_team_1,af_override_horse,aif_start_alarmed,1,[]),
+   ],
+
+ # Triggers
+  # Triggers
+  tld_common_wb_muddy_water+
+  tld_common_battle_scripts+
+  common_deathcam_triggers + [
+  
   common_battle_on_player_down,
 
   # Make the teams enemies...
@@ -1758,22 +2360,23 @@ mission_templates = [ # not used in game
   [
     (try_begin),
       (eq, "$battle_won", 1),
-      (jump_to_menu, "mnu_village_quest_result"),
+      (jump_to_menu, "mnu_animal_ambush_success"),
       (finish_mission),
     (else_try),
       (main_hero_fallen),
-      (jump_to_menu, "mnu_village_quest_result"),
+      (jump_to_menu, "mnu_animal_ambush_fail"),
       (finish_mission),
     (try_end),
     # Apply health changes...
     (try_begin),
-      (eq|this_or_next, "$battle_won", 1),
+      (this_or_next|eq, "$battle_won", 1),
       (main_hero_fallen),
       (try_for_agents, ":agent"),
+        (gt, ":agent",0),
         (agent_is_human, ":agent"),
         (agent_get_troop_id, ":troop", ":agent"),
         (troop_is_hero, ":troop"),
-        (eq|this_or_next, ":troop", "trp_player"),
+        (this_or_next|eq, ":troop", "trp_player"),
         (is_between, ":troop", companions_begin, companions_end),
         (store_agent_hit_points,":hp",":agent",0),
         (call_script, "script_get_max_skill_of_player_party", "skl_wound_treatment"),
@@ -1784,7 +2387,8 @@ mission_templates = [ # not used in game
       (try_end),
     (try_end),
   ]),
-  
+
+
   common_inventory_not_available, 
   common_music_situation_update,
   common_battle_check_friendly_kills,
@@ -1793,12 +2397,59 @@ mission_templates = [ # not used in game
   common_battle_inventory,      
   common_battle_order_panel,
   common_battle_order_panel_tick,
-      
-    ],
-  ),
+
+]),
 
 
-### Defend / Raid Village MT End (kham)###
+( "amath_dollen_spirit",0,-1,
+  "You approach the hill towards the bandit's ancestors.",
+    [(0,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (1,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (2,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (3,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (4,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (5,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (6,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (7,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (8,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (9,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (10,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (11,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (12,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (13,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (14,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (15,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (16,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (17,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (18,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (19,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (20,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (21,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (22,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (23,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (24,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (25,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (26,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (27,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (28,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (29,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (30,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (31,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     (32,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
+     ],
+    tld_common_wb_muddy_water +
+    tld_common_peacetime_scripts + [
+      (ti_inventory_key_pressed, 0, 0, [(set_trigger_result,1)], []),
+      (ti_tab_pressed          , 0, 0, [(set_trigger_result,1)], []),
+    (0, 0, ti_once, [], [#(set_fog_distance, 150, 0xFF736252)
+          (call_script, "script_music_set_situation_with_culture", 0)]),
+    (ti_before_mission_start, 0, 0, [], [(set_rain,1,100)]),
+    (0, 0, ti_once,[],[(set_fog_distance, 100, 0x6E6A5D)]),    #0x726438 Yellow; 
+]),
+
+## Amath Dollen Fortress MT End - Kham
+
+
 
 ### Destroy Scout Camp MT Start (kham)###
 
@@ -1987,32 +2638,32 @@ mission_templates = [ # not used in game
 ( "castle_attack_walls_ladder",mtf_battle_mode,-1,
   "You attack the walls of the castle...",
     [# Attacker initial spawn point (was 0)
-     (47,mtef_attackers|mtef_team_1,af_override_horse,aif_start_alarmed,8,[]),
+     (47,mtef_attackers|mtef_team_1,af_override_horse,aif_start_alarmed,12,[]),
      # Initial defender spawn point (was 11)
-     (40,mtef_defenders|mtef_team_0|mtef_infantry_first,af_override_horse,aif_start_alarmed,8,[]),
+     (40,mtef_defenders|mtef_team_0|mtef_infantry_first,af_override_horse,aif_start_alarmed,12,[]),
      # Defender choke points (was 10)
      (41,mtef_defenders|mtef_team_0|mtef_infantry_first,af_override_horse,aif_start_alarmed,0,[]), # team left flank
      (42,mtef_defenders|mtef_team_0|mtef_infantry_first,af_override_horse,aif_start_alarmed,0,[]), # team center
      (43,mtef_defenders|mtef_team_0|mtef_infantry_first,af_override_horse,aif_start_alarmed,0,[]), # team right flank
      # Defender reinforcements (was 15)
-     (44,mtef_defenders|mtef_team_0|mtef_infantry_first,af_override_horse,aif_start_alarmed,4,[]), #entry 5 for add_reinforcements_to_entry
-     (45,mtef_defenders|mtef_team_0|mtef_infantry_first,af_override_horse,aif_start_alarmed,4,[]),
-     (46,mtef_defenders|mtef_team_0|mtef_infantry_first,af_override_horse,aif_start_alarmed,4,[]),
+     (44,mtef_defenders|mtef_team_0|mtef_infantry_first,af_override_horse,aif_start_alarmed,8,[]), #entry 5 for add_reinforcements_to_entry
+     (45,mtef_defenders|mtef_team_0|mtef_infantry_first,af_override_horse,aif_start_alarmed,8,[]),
+     (46,mtef_defenders|mtef_team_0|mtef_infantry_first,af_override_horse,aif_start_alarmed,8,[]),
      # Attacker reinforcements (was 0)
      (47,mtef_attackers|mtef_team_1,af_override_horse,aif_start_alarmed,4,[]), #entry 8 for add_reinforcements_to_entry
      (48,mtef_attackers|mtef_team_1,af_override_horse,aif_start_alarmed,4,[]),
      (49,mtef_attackers|mtef_team_1,af_override_horse,aif_start_alarmed,4,[]),
      # defender archer target positions (was 40-43)
-     (50,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,2,[]), # team left flank
-     (51,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,2,[]),
-     (52,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,2,[]),
-	 (53,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,2,[]),
-	 (54,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,3,[]), # team center
-     (55,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,3,[]),
-     (56,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,2,[]), # team right flank
-	 (57,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,2,[]),
-     (58,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,2,[]),
-     (59,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,2,[]),
+     (50,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,4,[]), # team left flank
+     (51,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,4,[]),
+     (52,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,4,[]),
+	 (53,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,4,[]),
+	 (54,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,6,[]), # team center
+     (55,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,6,[]),
+     (56,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,4,[]), # team right flank
+	 (57,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,4,[]),
+     (58,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,4,[]),
+     (59,mtef_defenders|mtef_team_0|mtef_archers_first,af_override_horse,aif_start_alarmed,4,[]),
 	],
    tld_common_wb_muddy_water+
     common_deathcam_triggers+
@@ -2033,7 +2684,8 @@ mission_templates = [ # not used in game
 		(call_script, "script_music_set_situation_with_culture", mtf_sit_siege),
 		(assign, "$defender_team"  , 0),(assign, "$attacker_team"  , 1),
 		(assign, "$defender_team_2", 2),(assign, "$attacker_team_2", 3),
-		(assign, "$defender_team_3", 4),(assign, "$attacker_team_3", 5)]),	
+		(assign, "$defender_team_3", 4),(assign, "$attacker_team_3", 5),
+    ]),	
 		common_battle_tab_press,
 	(ti_question_answered, 0, 0, [],[
 		(store_trigger_param_1,":answer"),
@@ -2078,7 +2730,7 @@ mission_templates = [ # not used in game
     (try_begin),  #Siege Order Exceptions (Kham)
       (eq, "$g_encountered_party", "p_town_umbar_camp"),
       (team_give_order, ":atkteam", grc_everyone, mordr_charge),
-      (display_message, "@Charge", color_bad_news),
+      #(display_message, "@Charge", color_bad_news),
     (else_try),
       (eq, "$g_encountered_party", "p_town_dol_amroth"),
       (entry_point_get_position, pos10, 62),
@@ -2099,9 +2751,10 @@ mission_templates = [ # not used in game
 			(store_normalized_team_count,":num_attackers",":atkteam"),
 			(val_add,":atkteam",2),
 			(val_add,":entry",1),
-			(lt,":num_attackers",6),
-			(add_reinforcements_to_entry, ":entry", 8),
+			(lt,":num_attackers",10),
+			(add_reinforcements_to_entry, ":entry", 12),
 			(val_add,"$attacker_reinforcement_stage", 1),
+      (assign, "$attacker_archer_melee",1), #Kham - Every reinforcement event leads to a refresh of attack mode.
 		(try_end)]),
 	(3, 0, 5, [(lt,"$defender_reinforcement_stage", 15),(store_mission_timer_a,":mission_time"),(ge,":mission_time",10)],[
 		(assign,":defteam","$defender_team"),
@@ -2110,8 +2763,8 @@ mission_templates = [ # not used in game
 			(store_normalized_team_count,":num_defenders",":defteam"),
 			(val_add,":defteam",2),
 			(val_add,":entry",1),
-			(lt,":num_defenders",10),
-			(add_reinforcements_to_entry, ":entry", 7), #TLD, was 4, 7
+			(lt,":num_defenders",14),
+			(add_reinforcements_to_entry, ":entry", 10), #TLD, was 4, 7
 			(val_add,"$defender_reinforcement_stage",1),
 		(try_end),
 		(try_begin),
@@ -2141,15 +2794,39 @@ mission_templates = [ # not used in game
 		(try_end)]),
 	(2, 0, 0,[(gt, "$defender_reinforcement_stage", 0)],[(call_script, "script_siege_move_archers_to_archer_positions")]),
 
-	# (5, 0, 0, [], #Make sure attackers do not stall on the ladders...
-	# [(try_for_agents, ":agent_no"),  
-	# (agent_is_human, ":agent_no"),
-	# (agent_is_alive, ":agent_no"),
-	# (agent_get_team, ":agent_team", ":agent_no"),
-	# (this_or_next|eq, ":agent_team", "$attacker_team"),(this_or_next|eq, ":agent_team", "$attacker_team_2"),(eq, ":agent_team", "$attacker_team_3"),
-	# (agent_ai_set_always_attack_in_melee, ":agent_no", 1),
-	# (try_end),
-	# ]),
+   (5, 0, 0, [ #Kham - Revert attackers to regular attack mode when reinforcement comes.
+     (eq, "$attacker_archer_melee",1),
+     ],
+     [
+     (try_for_agents, ":agent_no"),  
+     (agent_is_human, ":agent_no"),
+     (agent_is_alive, ":agent_no"),
+     (agent_get_team, ":agent_team", ":agent_no"),
+     (this_or_next|eq, ":agent_team", "$attacker_team"),(this_or_next|eq, ":agent_team", "$attacker_team_2"),(eq, ":agent_team", "$attacker_team_3"),
+     (agent_ai_set_always_attack_in_melee, ":agent_no", 0),
+     (assign, "$attacker_archer_melee",0),
+     (try_end),
+     (try_begin),
+      (eq, "$cheat_mode", 1),
+      (display_message, "@DEBUG: Attackers go back to regular attack mode"),
+     (try_end),
+   ]),
+	 (35, 0, 0, [
+     (eq, "$attacker_archer_melee", 0),  #Make sure attackers do not stall on the ladders... 
+     ],
+  	 [
+     (try_for_agents, ":agent_no"),  
+  	 (agent_is_human, ":agent_no"),
+  	 (agent_is_alive, ":agent_no"),
+  	 (agent_get_team, ":agent_team", ":agent_no"),
+  	 (this_or_next|eq, ":agent_team", "$attacker_team"),(this_or_next|eq, ":agent_team", "$attacker_team_2"),(eq, ":agent_team", "$attacker_team_3"),
+  	 (agent_ai_set_always_attack_in_melee, ":agent_no", 1),
+  	 (try_end),
+     (try_begin),
+      (eq, "$cheat_mode", 1),
+      (display_message, "@DEBUG: Attackers do not stall on ladders triggered"),
+     (try_end),
+	 ]),
 	common_battle_check_friendly_kills,
 	common_battle_check_victory_condition,
 	common_battle_victory_display,
@@ -2782,9 +3459,86 @@ mission_templates = [ # not used in game
 	common_siege_assign_men_to_belfry,
 	common_siege_ai_trigger_init_2,
 ]),
+
+( "custom_battle_form_test",mtf_battle_mode,-1,
+  "You lead your men into battle",
+ [
+  # Player
+  (0,mtef_team_0|mtef_use_exact_number,af_override_horse,aif_start_alarmed,30,[]),
+
+  # Companions (Add more for more companions)
+  (1,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (2,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (3,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (4,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (5,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (6,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (7,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (8,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (9,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (10,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (11,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (12,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (13,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (14,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (15,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+  (16,mtef_visitor_source|mtef_team_0,0,0,1,[]),
+
+  # Enemies:
+  (17,mtef_visitor_source|mtef_team_1,0,0,1,[]),
+  (18,mtef_visitor_source|mtef_team_1,0,0,1,[]),
+  (19,mtef_visitor_source|mtef_team_1,0,0,1,[]),
+  (20,mtef_visitor_source|mtef_team_1,0,0,1,[]),
+  (21,mtef_visitor_source|mtef_team_1,0,0,1,[]),
+  (22,mtef_visitor_source|mtef_team_1,0,0,1,[]),
+  (23,mtef_visitor_source|mtef_team_1,0,0,1,[]),
+  (24,mtef_visitor_source|mtef_team_1,0,0,1,[]),
+  (25,mtef_visitor_source|mtef_team_1,0,0,1,[]),
+  (26,mtef_visitor_source|mtef_team_1,0,0,1,[]),
+  (27,mtef_visitor_source|mtef_team_1,0,0,1,[]),
+  (28,mtef_visitor_source|mtef_team_1,0,0,1,[]),
+  (29,mtef_visitor_source|mtef_team_1,0,0,1,[]),
+  (30,mtef_visitor_source|mtef_team_1,0,0,1,[]),
+
+ ],
+  # Triggers
+  tld_common_wb_muddy_water +
+  formations_triggers + 
+  AI_triggers + 
+  common_deathcam_triggers + 
+  tld_common_battle_scripts + 
+  command_cursor_sub_mod + [
+  common_battle_tab_press,
+  common_music_situation_update,
+  common_battle_check_friendly_kills,
+  common_battle_check_victory_condition,
+  common_battle_victory_display,
+  common_battle_on_player_down,
+  common_battle_inventory,
+
+  # Make the teams enemies...
+  (ti_before_mission_start, 0, 0, [], [(team_set_relation, 0, 1, -1),(assign, "$battle_won", 0)]),
+
+  (0, 0, ti_once, 
+  [
+    #(str_store_troop_name, s1, reg20),
+    #(display_message, "@DEBUG: Enemy to spawn: {s1}"),
+    #(display_message, "@DEBUG: Enemies to spawn: {reg21}"),
+
+    # Make enemies charge...
+    (set_show_messages, 0),
+      (team_give_order, 1, grc_everyone, mordr_hold),
+      (team_give_order, 1, grc_everyone, mordr_stand_ground),
+    (set_show_messages, 1),
+  ], 
+  []),    
+  common_battle_order_panel,
+  common_battle_order_panel_tick,
+]),
+
 ( "custom_battle_5",mtf_battle_mode,-1,
   "You lead your men to battle.",
-    [ (0 ,mtef_visitor_source|mtef_team_0,af_override_horse,aif_start_alarmed,1,[]),(1 ,mtef_visitor_source|mtef_team_0,af_override_horse,aif_start_alarmed,1,[]),
+    [ (0 ,mtef_attackers|mtef_team_0,af_override_horse,aif_start_alarmed,1,[]),     (1 ,mtef_attackers|mtef_use_exact_number|mtef_team_0,af_override_horse,aif_start_alarmed,20,[]),
       (2 ,mtef_visitor_source|mtef_team_0,af_override_horse,aif_start_alarmed,1,[]),(3 ,mtef_visitor_source|mtef_team_0,af_override_horse,aif_start_alarmed,1,[]),
       (4 ,mtef_visitor_source|mtef_team_0,af_override_horse,aif_start_alarmed,1,[]),(5 ,mtef_visitor_source|mtef_team_0,af_override_horse,aif_start_alarmed,1,[]),
       (6 ,mtef_visitor_source|mtef_team_0,af_override_horse,aif_start_alarmed,1,[]),(7 ,mtef_visitor_source|mtef_team_0,af_override_horse,aif_start_alarmed,1,[]),
@@ -3003,9 +3757,34 @@ mission_templates = [ # not used in game
      (17,mtef_scene_source|mtef_team_0,0,0,1,[]),(18,mtef_scene_source|mtef_team_0,0,0,1,[]),(19,mtef_scene_source|mtef_team_0,0,0,1,[]),
      ],tld_common_wb_muddy_water+[
     (ti_tab_pressed, 0, 0, [],[(finish_mission,0)]),
-	(0,0,ti_once,[],[(try_begin),(is_currently_night),(play_sound, "$bs_night_sound", sf_looping),
-					  (else_try),					  (play_sound, "$bs_day_sound",   sf_looping),
-					 (try_end)]),
+	  
+    (0,0,ti_once,[],
+      [(try_begin),
+        (is_currently_night),
+        (play_sound, "$bs_night_sound", sf_looping),
+			 (else_try),
+         (play_sound, "$bs_day_sound",   sf_looping),
+			 (try_end)]),
+     (10, 0, ti_once, [], [ # Kham - Give legendary place description
+        (try_begin),
+          (eq, "$g_encountered_party", "p_legend_amonhen"),
+          (party_slot_eq, "p_legend_amonhen", slot_legendary_visited, 0),
+          (tutorial_message, "@You have come upon the ruins of Amon Hen, the Hill of Sight, a Gondorian watch-tower atop which rests the Seat of Seeing^^You sense that this place was once great but has long been forgotten",0,12),
+          (add_xp_as_reward, 250),
+          (party_set_slot, "p_legend_amonhen", slot_legendary_visited, 1),
+        (else_try),
+          (eq, "$g_encountered_party", "p_legend_deadmarshes"),
+          (party_slot_eq, "p_legend_deadmarshes", slot_legendary_visited, 0),
+          (tutorial_message, "@You have come upon the Dead Marshes, site of the battle of Dagorlad during the War of the Last Alliance^^The marshlands have swallowed up what was once a grassy plain, and now the only green is the scum of livid weed on the dark greasy surfaces of the sullen waters^^Dead grasses and rotting reeds loom up in the mists like ragged shadows of long forgotten summers, and bodies of men, elves, and orcs float in the murky depths^^The air feels cold and clammy, and you can't help but shiver as you see candle-lights flickering in the eyes of an elf corpse just beneath the water's surface",0,12),
+          (add_xp_as_reward, 250),
+          (party_set_slot, "p_legend_deadmarshes", slot_legendary_visited, 1),
+        (else_try),
+          (eq, "$g_encountered_party", "p_legend_mirkwood"),
+          (party_slot_eq, "p_legend_mirkwood", slot_legendary_visited, 0),
+          (tutorial_message, "@You have entered the woods of Southern Mirkwood, once known as Greenwood the Great^^The fortress of Dol Guldur is nearby and it casts a dark shadow over the forest. The woods here feel sickly and full of decay. Ancient oak trees are overrun with rot and fungus and great tangling webs stretch from trunk to trunk^^ The air is everlastingly still and dark and stuffy, and it feels like you are slowly being suffocated",0,12),
+          (add_xp_as_reward, 250),
+          (party_set_slot, "p_legend_mirkwood", slot_legendary_visited, 1),
+        (try_end)]),
 ]),
 ( "tld_erebor_dungeon",0,-1,"Default town visit",
     [(0,mtef_visitor_source|mtef_team_0,af_override_horse,0,1,[]),
@@ -3015,7 +3794,7 @@ mission_templates = [ # not used in game
      (4,mtef_visitor_source|mtef_team_1,af_override_horse,0,1,[]),
      (5,mtef_scene_source|mtef_team_0,af_override_horse,0,1,[]),
      (6,mtef_scene_source|mtef_team_0,af_override_horse,0,1,[]),
-	 ],tld_common_wb_muddy_water+[
+	 ],tld_common_wb_muddy_water+fade+[
 	#(ti_tab_pressed, 0, 0, [(set_trigger_result,1)], []),
 	#(ti_inventory_key_pressed, 0, 0, [(set_trigger_result,1),], []),
 	#(1, 0, ti_once, [], [(tutorial_box,"str_tld_erebor_dungeon"),]),
@@ -3054,13 +3833,25 @@ mission_templates = [ # not used in game
 # Spears Quest - Dwarven Warehouse (Kham)
 
 ( "tld_dwarven_warehouse",0,-1,"Default town visit",
-    [(0,mtef_scene_source|mtef_team_0,af_override_horse,0,1,() ),],tld_common_wb_muddy_water+[
-	(0, 2, ti_once,  [],
-        [
-          (quest_slot_eq,"qst_find_lost_spears",slot_quest_current_state, 10),
-          (quest_set_slot,"qst_find_lost_spears",slot_quest_current_state, 15),
-          (str_store_troop_name, s3, "trp_dwarf_lord"),
-		  (display_message, "@You have found the Dwarven Warehouse where the Legendary Spears could be. Report what you find to {s3}",color_good_news),
+    [(0,mtef_scene_source|mtef_team_0,af_override_horse,0,1,() ),],tld_common_wb_muddy_water+fade+[
+	   (0, 0, ti_once,  
+      [
+        (quest_slot_eq,"qst_find_lost_spears",slot_quest_current_state, 10),
+        (get_player_agent_no, ":player_agent"),
+        (agent_get_position, pos1, ":player_agent"),
+        (entry_point_get_position,pos2,15),
+        (get_distance_between_positions, ":cur_distance", pos1, pos2),
+        (le, ":cur_distance", 100),
+        #(display_message, "@DEBUG:Trigger occured"),
+      ],
+      [ 
+       (str_store_troop_name, s3, "trp_dwarf_lord"),
+       #(tutorial_message_set_size, 17, 17),
+       #(tutorial_message_set_position, 500, 650),
+       #(tutorial_message_set_center_justify, 0),
+       #(tutorial_message_set_background, 1),
+       (tutorial_message, "@You have found the Dwarven Warehouse where the Legendary Spears could be. Report what you find to {s3}", 0, 8),
+       (quest_set_slot,"qst_find_lost_spears",slot_quest_current_state, 15),
       ]),
 	(ti_tab_pressed, 0, 0, [], [(question_box,"@Leave the Warehouse?")]),
 	(ti_question_answered, 0, 0, [], [(store_trigger_param_1,":answer"), (eq,":answer",0), (finish_mission)])
@@ -3651,7 +4442,9 @@ mission_templates = [ # not used in game
  ],
 	# Triggers
   tld_common_wb_muddy_water+
-	common_deathcam_triggers + [
+	common_deathcam_triggers +
+  khams_custom_player_camera+
+  fade+ [
 	
 	custom_warg_sounds,
 	common_battle_on_player_down,
@@ -3698,24 +4491,25 @@ mission_templates = [ # not used in game
 			(jump_to_menu, "mnu_animal_ambush_fail"),
 			(finish_mission),
 		(try_end),
-		# Apply health changes...
-		(try_begin),
-			(eq|this_or_next, "$battle_won", 1),
-			(main_hero_fallen),
-			(try_for_agents, ":agent"),
-				(agent_is_human, ":agent"),
-				(agent_get_troop_id, ":troop", ":agent"),
-				(troop_is_hero, ":troop"),
-				(eq|this_or_next, ":troop", "trp_player"),
-				(is_between, ":troop", companions_begin, companions_end),
-				(store_agent_hit_points,":hp",":agent",0),
-				(call_script, "script_get_max_skill_of_player_party", "skl_wound_treatment"),
-				(store_mul, ":medic", reg0, 5),
-				(val_add, ":hp", ":medic"),
-				(val_clamp, ":hp", 0, 100),
-				(troop_set_health, ":troop", ":hp"),
-			(try_end),
-		(try_end),
+    # Apply health changes...
+    (try_begin),
+      (this_or_next|eq, "$battle_won", 1),
+      (main_hero_fallen),
+      (try_for_agents, ":agent"),
+        (gt, ":agent",0),
+        (agent_is_human, ":agent"),
+        (agent_get_troop_id, ":troop", ":agent"),
+        (troop_is_hero, ":troop"),
+        (this_or_next|eq, ":troop", "trp_player"),
+        (is_between, ":troop", companions_begin, companions_end),
+        (store_agent_hit_points,":hp",":agent",0),
+        (call_script, "script_get_max_skill_of_player_party", "skl_wound_treatment"),
+        (store_mul, ":medic", reg0, 5),
+        (val_add, ":hp", ":medic"),
+        (val_clamp, ":hp", 0, 100),
+        (troop_set_health, ":troop", ":hp"),
+      (try_end),
+    (try_end),
 	]),
 
 # Aniamal striking...

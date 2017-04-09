@@ -717,8 +717,8 @@ float _contour( float d, float w ){
 }
 
 /* just simple macros, could be a bit less messy */
-#define    samp(uv, w)  _contour( tex2D(FontTextureSampler,uv).r, w );
-#define intsamp(uv, w)   _intour( tex2D(FontTextureSampler,uv).r, w );
+#define    samp(uv, w)  _contour( 1.0 - tex2D(FontTextureSampler, uv).r, w );
+#define intsamp(uv, w)   _intour( 1.0 - tex2D(FontTextureSampler, uv).r, w );
 
 PS_OUTPUT ps_font_outline(VS_OUTPUT_FONT In)
 {
@@ -729,7 +729,7 @@ PS_OUTPUT ps_font_outline(VS_OUTPUT_FONT In)
 
     float2 uv = In.Tex0.xy;
 
-    float dist = tex2D( FontTextureSampler, uv ).r;
+    float dist = 1.0 - tex2D( FontTextureSampler, uv ).r;
     float width = fwidth(dist);
 
     float alpha = _contour( dist, width );
@@ -782,6 +782,16 @@ VS_OUTPUT_FONT_MTARINI vs_font_mtarini(float4 vPosition : POSITION, float4 vColo
    Out.Tex0.xy = tc;
    Out.Color = vColor * vMaterialColor;
    
+   /* swy: turn pure blue text into something less unsightly,
+           and do it here because tracking down every instance is a pain in places */
+   if (vColor.r == 0.f && vColor.g == 0.f && vColor.b == 1.f)
+       Out.Color.rgb = float3(
+           127.f / 255.f,
+           076.f / 255.f,
+           033.f / 255.f
+       );
+   
+   
    // compute border color
    Out.Tex0.z = (max(Out.Color.r, max( Out.Color.g, Out.Color.b ) ) >0.5)?0:1;
    
@@ -801,8 +811,8 @@ float contour( float d, float w ){
 }
 
 /* just simple macros, could be a bit less messy */
-#define    samp(uv, w)  contour( tex2D(FontTextureSampler,uv).r, w );
-#define intsamp(uv, w)   intour( tex2D(FontTextureSampler,uv).r, w );
+#define    samp(uv, w)  contour( 1.0 - tex2D(FontTextureSampler, uv).r, w );
+#define intsamp(uv, w)   intour( 1.0 - tex2D(FontTextureSampler, uv).r, w );
 
 PS_OUTPUT ps_font_outline_mtarini(PS_INPUT_FONT_MTARINI In)
 {
@@ -813,7 +823,7 @@ PS_OUTPUT ps_font_outline_mtarini(PS_INPUT_FONT_MTARINI In)
 
     float2 uv = In.Tex0.xy;
 
-    float dist = tex2D( FontTextureSampler, uv ).r;
+    float dist = 1.0 - tex2D( FontTextureSampler, uv ).r;
     float width = fwidth(dist);
 
     float alpha = contour( dist, width );

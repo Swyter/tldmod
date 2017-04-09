@@ -1,4 +1,5 @@
-﻿from header_common import *
+# -*- coding: utf-8 -*-
+from header_common import *
 from header_game_menus import *
 from header_parties import *
 from header_items import *
@@ -37,6 +38,7 @@ from module_info import wb_compile_switch as is_a_wb_menu
 #
 # Note: The first Menu is the initial character creation menu.
 ####################################################################################################################
+
 
 # just stuff to make search for troop cheat (mtarini)
 tmp_menu_steps = 5 # how many entries per meny page
@@ -264,6 +266,8 @@ game_menus = [
 	] for ct in range(cheat_switch)])+[
     ("build_your_own_scene"     ,[],"** Build your own scene for TLD **",
 		[                                         (jump_to_menu, "mnu_build_your_scene"),]),
+	("dressing_room" ,[],"Dressing Room",
+		[(assign, "$g_custom_battle_scenario", 99),(jump_to_menu, "mnu_custom_battle_2"),]),
     ("go_back"                  ,[],"Go back",[(change_screen_quit)])]
  ),
 # This needs to be the fourth window!!!
@@ -429,11 +433,33 @@ game_menus = [
 		#(set_visitors, 29, "trp_troll_of_moria",				1),
 		(str_store_string, s16, "str_custom_battle_1"),
 
-############################################# "Elves kick ass"
+############################################# "Dressing Room"
+     (else_try),
+     (eq, "$g_custom_battle_scenario", 99),
+       (assign, "$g_custom_battle_scene", "scn_quick_battle_ambush"),
+       (assign, "$g_player_troop", "trp_knight_3_6"),
+       (set_player_troop, "$g_player_troop"),
+       (modify_visitors_at_site, "$g_custom_battle_scene"),
+       (set_visitor, 0, "$g_player_troop"),
+       (set_visitor, 1, "trp_dorwinion_spirit_leader"),
+       (set_visitors,2, "trp_dorwinion_spirit", 2),
+       (set_visitor,3, "trp_knight_6_1"),
+       (set_visitor,4, "trp_knight_6_2"),
+       (str_store_string, s16, "@Dressing Room"),
+     (else_try),
+	   # Kham - Formations Test
+       (eq, "$g_custom_battle_scenario", 98),
+       (assign, "$g_custom_battle_scene", "scn_quick_battle_5"),
+       (modify_visitors_at_site, "$g_custom_battle_scene"),
+       (set_jump_entry, 0),
+       (set_visitor, 0, "trp_player"),
+	   (set_visitors, 17, "trp_uruk_hai_pikeman",				20),
+	   (str_store_string, s16, "@Formations Test"),
      (else_try),
        (eq, "$g_custom_battle_scenario", 2),
        (assign, "$g_custom_battle_scene", "scn_quick_battle_3"),
 
+############################################# "Elves kick ass"
        (assign, "$g_player_troop", "trp_knight_3_6"),
        (set_player_troop, "$g_player_troop"),
        (modify_visitors_at_site, "$g_custom_battle_scene"),
@@ -992,6 +1018,7 @@ game_menus = [
          (else_try),(eq, "$g_custom_battle_scenario", 9),(set_jump_mission,"mt_custom_battle_dynamic_scene"),
          (else_try),(eq, "$g_custom_battle_scenario",16),(set_jump_mission,"mt_custom_battle_parade"),#(rest_for_hours,12,1000,0),
          (else_try),(eq, "$g_custom_battle_scenario",26),(set_jump_mission,"mt_lead_charge"),#(rest_for_hours,12,1000,0),
+         (else_try),(eq, "$g_custom_battle_scenario",98),(set_jump_mission,"mt_custom_battle_form_test"),
 	 (else_try),(set_jump_mission,"mt_custom_battle"),
         (try_end),
         (jump_to_menu, "mnu_custom_battle_end"),
@@ -1698,6 +1725,8 @@ game_menus = [
      ("camp_test_madvader",[],"MV Test Menu",[(jump_to_menu, "mnu_camp_mvtest")]),
   ## MadVader test end
      ("camp_test_cppcoder",[],"Cpp Test Menu",[(jump_to_menu, "mnu_camp_cctest")]),
+  ## Kham Test begin
+  	 ("camp_test_kham",[],"Kham Test Menu",[(jump_to_menu, "mnu_camp_khamtest")]),
  ] for ct in range(cheat_switch)])+[
      ("resume_travelling",[],"Resume travelling.",[(change_screen_return)]),
     ]
@@ -2634,6 +2663,22 @@ game_menus = [
         (display_message, "@Gothmog besieges Edoras!", 0x30FFC8),
         (change_screen_map),
       ]),
+     ("order_siege_cairandros",[
+        (troop_get_slot, ":king_party", "trp_mordor_lord", slot_troop_leaded_party),
+        (party_is_active, ":king_party"),
+     ],"Order Gothmog to besiege Cair Andros.",
+      [ (troop_get_slot, ":king_party", "trp_mordor_lord", slot_troop_leaded_party),
+        (party_detach, ":king_party"),
+        (party_relocate_near_party, ":king_party", "p_town_cair_andros", 0),
+        (party_set_slot, "p_town_cair_andros", slot_center_is_besieged_by, ":king_party"),
+        (call_script, "script_party_set_ai_state", ":king_party", spai_besieging_center, "p_town_cair_andros"),
+        (party_set_ai_behavior, ":king_party", ai_bhvr_attack_party),
+        (party_set_ai_object, ":king_party", "p_town_cair_andros"),
+        (party_set_flags, ":king_party", pf_default_behavior, 1),
+        (party_set_slot, ":king_party", slot_party_ai_substate, 1),
+        (display_message, "@Gothmog besieges Cair Andros!", 0x30FFC8),
+        (change_screen_map),
+      ]),
 	("order_siege_pelargir",[
         (troop_get_slot, ":king_party", "trp_mordor_lord", slot_troop_leaded_party),
         (party_is_active, ":king_party"),
@@ -2981,6 +3026,54 @@ game_menus = [
     ]
  ),
 ## MadVader test end
+## Kham Test Begin
+( "camp_khamtest",0,
+	"^^^^^Click on an option to toggle.^^^Tweaks Gondor to have more troops in a party, gives them more hosts, gives them hosts more frequently, and lets Gondor lords wait longer to gather.^^Have to wait for the trigger to occur","none",[],
+    [
+    ("kham_gondor_ai_test",[(str_clear, s7),(try_begin),(neq, "$gondor_ai_testing", 1),(str_store_string, s7, "@OFF"),
+								(else_try),(str_store_string, s7, "@ON"),(try_end),
+        ],"Gondor AI Test Tweaks:  {s7}",[
+        (store_sub, "$gondor_ai_testing", 1, "$gondor_ai_testing"),(val_clamp, "$gondor_ai_testing", 0, 2)]),
+    ("give_imod_test", [],"Give IMOD Test Mesh",[(troop_add_item, "trp_player","itm_dwarf_sword_a", imod_fine),(troop_add_item, "trp_player","itm_beorn_shield_reward", imod_reinforced), (troop_add_item, "trp_player", "itm_good_mace", imod_masterwork),(display_message, "@IMOD test mesh given")]),
+    ("enable_raftmen",[],"Enable Raft Men Party", [(enable_party, "p_raft"), (display_message, "@Raft Men party enabled. They are down River Running", color_good_news)]),
+    ("give_moria_book",[],"Give Moria Book", [(troop_add_item, "trp_player","itm_book_of_moria"),(display_message, "@Moria Book given")]),
+    ("what_theater",[], "Which Theater Am I in?", [(call_script, "script_find_theater", "p_main_party")]),
+    ("what_region",[], "What Region am I in?", 
+    	[(store_add, reg1, str_shortname_region_begin , "$current_player_region"),
+		 (str_store_string, s1, reg1),
+		 (display_message, "@{s1}"),
+    	]),
+    ("eliminate_party",[], "Create Party + Ally for Eliminate Party Quest",
+    	[(check_quest_active, "qst_eliminate_patrols"),
+    	 (quest_get_slot, ":target", "qst_eliminate_patrols", slot_quest_target_party_template),
+    	 (set_spawn_radius, 5),
+    	 (spawn_around_party, "p_main_party", ":target"),
+    	 (assign, ":target_party", reg0),
+    	 (store_faction_of_party, ":fac" ,":target_party"),
+    	 (try_begin),
+    	 	(faction_slot_eq, ":fac",slot_faction_side, faction_side_good),
+    	 	(set_spawn_radius, 5),
+    	 	(spawn_around_party, ":target_party", "pt_mordor_war_party"),
+    	 (else_try),
+    	 	(set_spawn_radius, 5),
+    	 	(spawn_around_party, ":target_party", "pt_gondor_company"),
+    	 (try_end),
+    	 (display_message, "@Target Party and Ally Spawned!")]),
+    ("player_control_allies",[
+    	(try_begin),
+    		(eq, "$player_control_allies",0),
+    		(str_store_string, s7, "@OFF"),
+    	(else_try),
+    		(str_store_string, s7, "@ON"),
+    	(try_end),
+    	],"Let Player Command Allies: {s7}", [
+    	(store_sub, "$player_control_allies",1, "$player_control_allies"), 
+    	(val_clamp, "$player_control_allies",0,2)]),
+    ("spawn_orc_horde",[],"Spawn Orc Horde", [(set_spawn_radius,3),(spawn_around_party, "p_main_party", "pt_orc_horde"),(display_message, "@Orc Horde Spawned!")]),
+    ("spawn_vet_archer",[],"Spawn Vet Archer", [(set_spawn_radius,3),(spawn_around_party, "p_main_party", "pt_vet_archer"),(display_message, "@Vet Archer Spawned!")]),
+    ("camp_khamtest_back",[],"Back",[(jump_to_menu, "mnu_camp")]),
+ ]),
+
 ( "game_options",0,
 	"^^^^^^^^Click on an option to toggle:","none",[],
     [
@@ -3573,7 +3666,20 @@ game_menus = [
 	("just_back",[],"Back",[(jump_to_menu, "mnu_camp_cheat")]),
 	("none",[],"None",[(assign,"$cheat_imposed_quest",-1),(jump_to_menu, "mnu_cheat_impose_quest")]),
 #	("night_bandits",[],"Mirkwood Sorcerer",[(assign,"$cheat_imposed_quest","qst_mirkwood_sorcerer")]),
-#	("spears",[],"Lost Spears",[(assign,"$cheat_imposed_quest","qst_find_lost_spears")]),
+	("spears",[],"Lost Spears",[(assign,"$cheat_imposed_quest","qst_find_lost_spears")]),
+	("scout_camp", [], "Destroy Scout Camp", [(assign, "$cheat_imposed_quest", "qst_destroy_scout_camp")]),
+	("defend_village", [], "Defend Village", [(assign, "$cheat_imposed_quest", "qst_defend_village")]),
+	("raid_village", [], "Raid Village", [(assign, "$cheat_imposed_quest", "qst_raid_village")]),
+    ("eliminate_patrols", [], "Eliminate Patrols", [(assign, "$cheat_imposed_quest", "qst_eliminate_patrols")]),
+    ("eliminate_troll", [], "Dispatch Troll", [
+    	(try_begin),
+    		(store_faction_of_party, ":fac", "p_main_party"),
+    		(faction_slot_eq, ":fac",slot_faction_side, faction_side_good),
+    		(assign, "$cheat_imposed_quest", "qst_kill_troll"),
+    	(else_try),
+    		(assign, "$cheat_imposed_quest", "qst_capture_troll"),
+    	(try_end)
+    ])
     ]+[("mi21",[(str_store_quest_name,s21,x)],"{s21}",[(assign,"$cheat_imposed_quest",x),(jump_to_menu, "mnu_cheat_impose_quest")]) for x in range(qst_quests_end) ]+[
   ]),
   
@@ -4028,6 +4134,8 @@ game_menus = [
 			#(str_store_string, s2,"@A group of {s1}  are {reg10?riding:marching} toward you."),
           (else_try),
 			(eq, "$new_encounter", 1),
+			(this_or_next|eq, "$g_encountered_party_template", "pt_wild_troll"),
+			(this_or_next|eq, "$g_encountered_party_template", "pt_raging_trolls"),
 			(eq, "$encountered_party_hostile", 1),
 			(neg|encountered_party_is_attacker),
             (str_store_string, s2,"@You are attacking a group of {s1}."),
@@ -4133,7 +4241,7 @@ game_menus = [
           (this_or_next|eq, 		"$encountered_party_friendly", 0),
 		  (this_or_next|is_between, "$g_encountered_party_template", "pt_wild_troll" ,"pt_looters"),
 		  (				eq, 		"$g_encountered_party_template", "pt_ring_hunters"),
-          # (neg|troop_is_wounded, "trp_player"), a test: what happes if I let player partecipate?
+           (neg|troop_is_wounded, "trp_player"), #a test: what happes if I let player partecipate?
 ##          (store_troop_health,reg(5)),
 ##          (ge,reg(5),5),
           ],
@@ -4574,9 +4682,15 @@ game_menus = [
 			(eq, ":winning_side_faction", "fac_umbar" ),
 			(set_background_mesh, "mesh_draw_victory_corsairs"), # specific victory-loss image: umbar VS anything
 		(else_try),
+			(eq, ":winning_side_faction", "fac_dale" ),
+			(set_background_mesh, "mesh_draw_victory_dale"), # specific victory-loss image: dale VS anything
+		(else_try),
 			(eq, ":winning_side_race", tf_elf_begin),
 			(eq, ":losing_side_race_group", tf_orc ),
 			(set_background_mesh, "mesh_draw_lorien_arrows"),  # specific victory-loss image: elves VS orcs 
+		(else_try),
+			(eq, ":winning_side_faction", "fac_lorien" ),
+			(set_background_mesh, "mesh_draw_victory_lorien"), # specific victory-loss image: lórien VS anything
 		(else_try),
 			# generic  defeat image: orcs....
 			(eq, "$g_battle_result", -1), (eq, "$player_looks_like_an_orc", 1),
@@ -5073,6 +5187,53 @@ game_menus = [
 				(call_script,"script_injury_routine", ":npc"), # chances to get injury halved when victory
 			(try_end),
 		(try_end),
+		## Kham - Oath of Vengeance Kills Start
+		(try_begin),
+			(check_quest_active, "qst_oath_of_vengeance"),
+			(quest_get_slot, ":target","qst_oath_of_vengeance", 2),
+			(quest_get_slot, ":moria", "qst_oath_of_vengeance",6),
+			(try_begin),
+				(gt, ":moria",0),
+				(quest_get_slot, ":gundabad", "qst_oath_of_vengeance",7),
+				(this_or_next|eq, ":defeated_faction",  ":target"),
+				(eq, ":defeated_faction", ":gundabad"),
+				(get_player_agent_kill_count, ":temp_kills"),
+				(val_sub, ":temp_kills", "$total_kills"),
+				(val_add, "$oath_kills", ":temp_kills"),
+			(else_try),
+				(eq, ":defeated_faction",  ":target"),
+				(get_player_agent_kill_count, ":temp_kills"),
+				(val_sub, ":temp_kills", "$total_kills"),
+				(val_add, "$oath_kills", ":temp_kills"),
+			(try_end),
+			(try_begin),
+				(eq, "$cheat_mode",1),
+				(assign, reg1, "$oath_kills"),
+				(assign, reg0, "$total_kills"),
+				(str_store_faction_name, s1, ":target"),
+				(display_message, "@{reg1} kills of {s1} faction troops counted towards Oath. TOTAL Kills: {reg0}"),
+			(try_end),
+		(try_end),
+		(get_player_agent_kill_count, "$total_kills"),
+		## Kham - Oath of Vengeance Kills END
+		## Kham - Eliminate Patrols Assist START
+		(try_begin),
+			(check_quest_active, "qst_eliminate_patrols"),
+			(quest_get_slot, ":target_pt", "qst_eliminate_patrols", slot_quest_target_party_template),
+			(party_get_template_id, ":current_target", "$g_enemy_party"),
+			(eq, ":current_target", ":target_pt"),
+			(quest_set_slot, "qst_eliminate_patrols", slot_quest_target_troop, ":current_target"), #slot to store target template 
+			(try_begin),
+				(eq, "$cheat_mode",1),
+				(eq, ":current_target",":target_pt"),
+				(display_message, "@DEBUG: Target Party - YES"),
+			(else_try),
+				(eq, "$cheat_mode",1),
+				(display_message, "@DEBUG: Target Party - NO"),
+			(try_end),
+		(try_end),
+		## Kham - Eliminate Patrols Assist END
+
       ],
     [("continue",[],"Continue...",[(change_screen_return)]),]
  ),
@@ -5895,7 +6056,53 @@ game_menus = [
 			(try_end),
 	  ]
 	  ,"Get the book"),
-
+	  ##Kham - Player Initiated Siege BEGIN
+	  ("player_castle_initiate_siege",
+	 	[#(eq, "$cheat_mode",1),
+	 	 (eq, "$player_allowed_siege",1), #Kham - Global Var that allows player to siege. Set in Dialogues.
+	 	 (store_faction_of_party, ":faction_no", "$g_encountered_party"),
+	 	 (faction_get_slot, ":faction_strength", ":faction_no", slot_faction_strength), #Check Faction Strength
+	 	 (party_get_slot, ":siegable", "$g_encountered_party", slot_center_siegability), #Check if we can siege
+	     (this_or_next|neq, ":siegable", tld_siegable_never), #some places are never siegable
+	     (neq, ":siegable", tld_siegable_capital), #We won't allow players to siege capitals
+	     (this_or_next|eq, "$tld_option_siege_reqs", 2), # No siege reqs
+	     (this_or_next|eq, ":siegable", tld_siegable_always), # camps and such can always be sieged
+	     (lt, ":faction_strength", "$g_fac_str_siegable"), # otherwise, defenders need to be weak
+	 	 (neg|troop_is_wounded, "trp_player"),
+	 	 (party_slot_eq, "$g_encountered_party", slot_center_is_besieged_by, -1), #if besieged by Marshall, player can't attack.
+	     (store_relation, ":reln", "$g_encountered_party_faction", "fac_player_supporters_faction"),
+	     (lt, ":reln", 0),
+	     (lt, "$g_encountered_party_2", 1),
+	     (call_script, "script_party_count_fit_for_battle","p_main_party"),
+	     (gt, reg(0), 1),
+	     (try_begin),
+	    	 (party_slot_eq, "$g_encountered_party", slot_party_type, spt_town),
+	           (assign, reg6, 1),
+	         (else_try),
+	           (assign, reg6, 0),
+	         (try_end),
+	    ],
+	    "Attack the {reg6?town:castle}...",
+	    [
+	     (party_set_next_battle_simulation_time, "$g_encountered_party", -1),
+	     (party_get_slot, ":battle_scene", "$g_encountered_party", slot_town_walls),
+	     (call_script, "script_let_nearby_parties_join_current_battle", 0, 0), #Kham - Let nearby lords join the battle
+         (call_script, "script_encounter_init_variables"),
+	     (call_script, "script_calculate_battle_advantage"),
+		 (val_mul, reg0, 2),
+		 (val_div, reg0, 3), #scale down the advantage a bit in sieges.
+		 (set_battle_advantage, reg0),
+		 (set_party_battle_mode),
+		 (set_jump_mission,"mt_castle_attack_walls_ladder"),
+		 (jump_to_scene,":battle_scene"),
+		 (assign, "$g_siege_final_menu", "mnu_player_initiated_siege_result"),
+		 (assign, "$g_siege_battle_state", 1),
+		 (assign, "$g_next_menu", "mnu_player_initiated_siege_result"),
+		 (jump_to_menu, "mnu_battle_debrief"),
+		 (change_screen_mission),
+		],
+	),
+	 ##Kham - Player Initiated Siege END
 	  
       # ("approach_gates",[(this_or_next|eq,"$entry_to_town_forbidden",1),
                           # (party_slot_eq,"$g_encountered_party", slot_party_type,spt_castle)],
@@ -5937,6 +6144,8 @@ game_menus = [
            (jump_to_menu,"mnu_sneak_into_town_caught"),
          (try_end)
          ]),
+
+      ##KHAM_SIEGE_TEST (ctrl-f shortcut)
       ("castle_start_siege",
        [ (eq, cheat_switch, 1),(eq, 0, 1), #MV: player can't start a sieg
            (this_or_next|party_slot_eq, "$g_encountered_party", slot_center_is_besieged_by, -1),
@@ -6904,6 +7113,12 @@ game_menus = [
         (try_end),
 		(assign, "$current_town","$g_encountered_party"),   # mtarini...  was:(store_encountered_party,"$current_town"),
 		
+		(try_begin),
+			(eq, "$cheat_mode",1),
+			(str_store_party_name, s29, "$current_town"),
+			(display_message, "@{s29}"),
+		(try_end),
+		
         (call_script, "script_update_center_recon_notes", "$current_town"),
         (assign, "$g_defending_against_siege", 0),
         (str_clear, s3),
@@ -7030,8 +7245,12 @@ game_menus = [
        ("town_approach",[(party_slot_eq,"$current_town",slot_party_type, spt_town),
           (this_or_next|eq,"$entry_to_town_forbidden",0),
           (eq, "$sneaked_into_town",1),
-		  (try_begin),   # elder troop stores center common name in plural register
-		    (neg|party_slot_eq, "$current_town", slot_town_elder, "trp_no_troop"),
+		  (try_begin), #kham fix for some weird elder switching that occurs...
+		  	(eq, "$current_town", "p_town_cair_andros"),
+		  	(party_set_slot, "p_town_cair_andros", slot_town_elder, "trp_elder_cairandros"),
+		  	(str_store_troop_name_plural, s1, "trp_elder_cairandros"),
+		  (else_try), # elder troop stores center common name in plural register
+		  	(neg|party_slot_eq, "$current_town", slot_town_elder, "trp_no_troop"),
 			(party_get_slot, ":elder_troop", "$current_town", slot_town_elder),
 		    (str_store_troop_name_plural, s1, ":elder_troop"),
 		  (else_try),
@@ -7111,8 +7330,14 @@ game_menus = [
 	  (this_or_next|eq,"$tld_option_crossdressing", 1),(eq,"$entry_to_town_forbidden",0), #  crossdresser can get in
       (this_or_next|eq,"$tld_option_town_menu_hidden",0),(party_slot_eq, "$current_town", slot_weaponsmith_visited, 1), #check if weaponsmith has been visited before to allow entry from menu. Otherwise scene will only be accessible from the town center.
       (neg|party_slot_eq, "$current_town", slot_town_weaponsmith, "trp_no_troop"),
-	  (party_get_slot, ":troop", "$current_town", slot_town_weaponsmith),
-	  (str_store_troop_name_plural, s40, ":troop"),],
+      (try_begin),
+      	(eq, "$current_town", "p_town_cair_andros"), ##Kham fix for weird slot switching
+	  	(party_set_slot, "p_town_cair_andros", slot_town_weaponsmith, "trp_smith_candros"),
+	  	(str_store_troop_name_plural, s40, "trp_smith_candros"),
+	  (else_try),
+	  	(party_get_slot, ":troop", "$current_town", slot_town_weaponsmith),
+	  	(str_store_troop_name_plural, s40, ":troop"),
+	  	(try_end),],
        "Visit the {s40}.",
        [(party_get_slot, ":troop", "$current_town", slot_town_weaponsmith),(change_screen_trade, ":troop")]),
 		
@@ -7163,7 +7388,7 @@ game_menus = [
 		
 		
 	 #Enter dungeon in Erebor begin (Kolba)
-      ("dungeon_enter",[(eq, cheat_switch, 1), # not done yet
+      ("dungeon_enter",[#(eq, cheat_switch, 1), # not done yet
 	    (party_slot_eq,"$current_town",slot_party_type, spt_town),
         (eq, "$current_town", "p_town_erebor"),
         (quest_slot_ge, "qst_find_lost_spears", slot_quest_current_state, 1),
@@ -7248,6 +7473,54 @@ game_menus = [
            (rest_for_hours_interactive, 24 * 7, 5, 0), #rest while not attackable
            (change_screen_return),
           ]),
+
+	  ##Kham - Player Initiated Siege BEGIN
+	  ("player_initiate_siege",
+	 	[(eq, "$cheat_mode",1),
+	 	 (eq, "$player_allowed_siege",1), #Kham - Global Var that allows player to siege. Set in Dialogues.
+	 	 (store_faction_of_party, ":faction_no", "$g_encountered_party"),
+	 	 (faction_get_slot, ":faction_strength", ":faction_no", slot_faction_strength), #Check Faction Strength
+	 	 (party_get_slot, ":siegable", "$g_encountered_party", slot_center_siegability), #Check if we can siege
+	     (this_or_next|neq, ":siegable", tld_siegable_never), #some places are never siegable
+	     (neq, ":siegable", tld_siegable_capital), #We won't allow players to siege capitals
+	     (this_or_next|eq, "$tld_option_siege_reqs", 2), # No siege reqs
+	     (this_or_next|eq, ":siegable", tld_siegable_always), # camps and such can always be sieged
+	     (lt, ":faction_strength", "$g_fac_str_siegable"), # otherwise, defenders need to be weak
+	 	 (neg|troop_is_wounded, "trp_player"),
+	 	 (party_slot_eq, "$g_encountered_party", slot_center_is_besieged_by, -1), #if besieged by Marshall, player can't attack.
+	     (store_relation, ":reln", "$g_encountered_party_faction", "fac_player_supporters_faction"),
+	     (lt, ":reln", 0),
+	     (lt, "$g_encountered_party_2", 1),
+	     (call_script, "script_party_count_fit_for_battle","p_main_party"),
+	     (gt, reg0, 1),
+	     (try_begin),
+	    	 (party_slot_eq, "$g_encountered_party", slot_party_type, spt_town),
+	           (assign, reg6, 1),
+	         (else_try),
+	           (assign, reg6, 0),
+	         (try_end),
+	    ],
+	    "Attack the {reg6?town:castle}...",
+	    [
+	     (party_set_next_battle_simulation_time, "$g_encountered_party", -1),
+	     (party_get_slot, ":battle_scene", "$g_encountered_party", slot_town_walls),
+	     (call_script, "script_let_nearby_parties_join_current_battle", 0, 0), #Kham - Let nearby lords join the battle
+         (call_script, "script_encounter_init_variables"),
+	     (call_script, "script_calculate_battle_advantage"),
+		 (val_mul, reg0, 2),
+		 (val_div, reg0, 3), #scale down the advantage a bit in sieges.
+		 (set_battle_advantage, reg0),
+		 (set_party_battle_mode),
+		 (set_jump_mission,"mt_castle_attack_walls_ladder"),
+		 (jump_to_scene,":battle_scene"),
+		 (assign, "$g_siege_final_menu", "mnu_player_initiated_siege_result"),
+		 (assign, "$g_siege_battle_state", 1),
+		 (assign, "$g_next_menu", "mnu_player_initiated_siege_result"),
+		 (jump_to_menu, "mnu_battle_debrief"),
+		 (change_screen_mission),
+		],
+	),
+	 ##Kham - Player Initiated Siege END
 
 #      ("siege_leave",[(eq, "$g_defending_against_siege", 1)],"Try to break out...",[(jump_to_menu,"mnu_siege_break_out")]),#TODO: Go to Menu here.
  ]+concatenate_scripts([[ 
@@ -7346,6 +7619,64 @@ game_menus = [
 
     ]
  ),
+
+
+##### Kham - Player Initiated Siege Result Begin
+("player_initiated_siege_result",mnf_enable_hot_keys,  
+    "You attacked this center under the banner of {s2}.",
+    "none",
+    code_to_set_city_background + [
+    	(str_clear, s2),
+        (str_store_faction_name, s2, "$players_kingdom"),
+        (assign, "$g_enemy_party", "$g_encountered_party"),
+        #(select_enemy, 0),
+        (try_begin),
+          (assign, ":enemy_finished", 0),
+          (try_begin),
+            (eq, "$g_battle_result", 1),
+            (assign, ":enemy_finished", 1),
+            (try_begin), #TLD: if center destroyable, disable it, otherwise proceed as normal
+				(party_slot_ge, "$g_enemy_party", slot_center_destroy_on_capture, 1),
+				(call_script, "script_destroy_center", "$g_enemy_party"),
+			(else_try),
+				(call_script, "script_give_center_to_faction", "$g_enemy_party", "$players_kingdom"),
+				(call_script, "script_order_best_besieger_party_to_guard_center", "$g_enemy_party", "$players_kingdom"),
+					# add a small garrison
+					(try_for_range, ":unused", 0, 5),
+						(call_script, "script_cf_reinforce_party", "$g_enemy_party"),
+					(try_end),
+		    (try_end),
+          (else_try),
+            (le, "$g_enemy_fit_for_battle", 0),
+            (ge, "$g_friend_fit_for_battle", 1),
+            (assign, ":enemy_finished", 1),
+          (else_try),
+          	(eq, "$g_battle_result", -1),
+          	(assign, "$player_allowed_siege", 0),
+          	(str_store_faction_name, s4, "$players_kingdom"),
+          	(display_message, "@{s4}'s scouts have seen and reported your failure. You have brought shame to {s4} and the responsibility of this failure is yours alone.", color_bad_news),
+          	(call_script, "script_increase_rank", "$players_kingdom", -250),
+          (try_end),
+          (eq, ":enemy_finished", 1),
+          (call_script, "script_party_wound_all_members", "$g_enemy_party"),
+          (leave_encounter),
+          (change_screen_return),
+        (else_try),
+          #(call_script, "script_party_count_members_with_full_health", "p_collective_friends"),
+         # (assign, ":ally_num_soldiers", reg0),
+          (eq, "$g_battle_result", -1),
+          #(eq, ":ally_num_soldiers", 0), #battle lost
+          #(assign, "$player_allowed_siege",0),
+          (leave_encounter),
+          (change_screen_return),
+        (try_end),
+        ],
+    [
+          ("leave",[],"Leave.",[(leave_encounter),(change_screen_return)]),
+    ]
+ ),
+
+##### Kham - Player Initiate Siege Result END
 
 ( "disembark",0,
     "Do you wish to disembark?",
@@ -7827,6 +8158,230 @@ game_menus = [
 
 ###Ring Hunters - Bandit Lair - End
 
+## Kham - Spears of Bladorthin - Raft Men - Start
+
+("raftmen",0,
+    "^^^^You follow the River Running southeast towards Rhûn, hoping to find the old merchant road.^^ After some time, you arrive at a small village nestled along the riverbank.^^You ask the villagers how you might reach the road and are directed towards a pair of men who navigate the river by raft.^^It takes some negotiating but you arrange for the men to bring you downriver.",
+    "none",
+    [(set_background_mesh, "mesh_town_goodcamp"), 
+    ],
+    [("go_with_the_raftmen",[],"Take the raft to Dorwinion",
+       [(jump_to_menu, "mnu_ride_to_dorwinion"),
+       ]),
+     ("leave_bandit_lair",[],"Leave for now.",[(change_screen_return)]),
+	]
+),
+
+("ride_to_dorwinion",0,
+    "^^^^You relax and enjoy the fair weather as the men steer the raft downriver. The River Running, cold and clear amidst the falls and rapids of the Lonely Mountain, here is tepid, gentle, and muddy.^^ In the afternoon sun, you watch rolling plains and verdant woodlands drift by as the raft floats along the winding meanders. The region is sparsely dotted with small farmsteads and vineyards with low stone walls and you pass the occasional stilted cottage tucked away in the reeds.^^The peaceful motion of the raft helps you drift off to sleep...",
+    "none",
+    [(set_background_mesh, "mesh_town_goodcamp"), 
+    ],
+    [("ride_to_dorwinion_next",[],"Next...",
+       [(jump_to_menu, "mnu_amath_dollen_fortress"),
+       ]),
+	]
+),
+
+### Amath Dollen Fortress Entry Points
+### 0, 1 player
+### 2 bandit captain
+### 3-13 archer guards
+### 14-23 infantry guards
+### 24-28 walkers
+
+("amath_dollen_fortress",0,
+    "^^^^You awake from your nap late in the afternoon and shortly reach a jetty where the men moor the raft. They direct you to a narrow track that disappears into the marsh grass and set up camp to await your return.^^You follow the track, which ascends quickly from the wetlands onto a grassy plain, and walk until it meets the old merchant road.^^After some time, you see a bandit fortress.",
+    "none",
+    [(set_background_mesh, "mesh_town_evilcamp"), 
+    ],
+    [("bandit_fortress_with_companions",[],"Approach the Bandit Fortress with only your companions and attempt to talk with their leader.",
+       [(set_jump_mission, "mt_amath_dollen_peace"),
+				(eq, "$g_encountered_party", "p_raft"),
+				(assign, ":lp_scene", "scn_black_shield_fortress"),
+				#(assign, "$bs_day_sound", "snd_"),
+				#(assign, "$bs_night_sound", "snd_"),
+				(modify_visitors_at_site,":lp_scene"),
+		    (reset_visitors),
+		    (set_visitor, 0, "trp_player"),
+		    (set_visitor, 2, "trp_black_shield"),
+		    (assign, ":cur_entry", 3),
+				(try_for_range, ":unused", 0, 11),
+					(set_visitor, ":cur_entry", "trp_black_shield_scout"),
+					(val_add, ":cur_entry", 1),
+				(try_end),
+				(assign, ":cur_entry", 14),
+				(try_for_range, ":unused", 0, 10),
+					(set_visitor, ":cur_entry", "trp_black_shield_bandit"),
+					(val_add, ":cur_entry", 1),
+				(try_end),
+        (set_visitor, 24, "trp_black_shield_bandit"),
+        (set_visitor, 25, "trp_black_shield_bandit"),
+        (set_visitor, 26, "trp_black_shield_guard"),
+        (set_visitor, 27, "trp_black_shield_guard"),
+        (set_visitor, 28, "trp_black_shield_guard"),
+        (jump_to_menu, "mnu_amath_dollen_fortress"),
+        (jump_to_scene,":lp_scene"),
+        (change_screen_mission),
+       ]),
+
+# Siege by player: 0 player
+# 1-15 team_0 infantry/archers
+# 16-18 team_1 infantry
+# 19-31 team_1 archers (best 2 each)
+ 
+     ("bandit_fortress_with_army",[],"Attack the bandit fortress with all your men.",
+       [(eq, "$g_encountered_party", "p_raft"),
+			(assign, ":lp_scene", "scn_black_shield_fortress_siege_player"),
+			#(assign, "$bs_day_sound", "snd_"),
+			#(assign, "$bs_night_sound", "snd_"),
+			(modify_visitors_at_site,":lp_scene"),
+	        (reset_visitors),
+	        (set_jump_entry, 0),
+	        (set_visitor, 0, "trp_player"),
+	        (store_character_level, ":level", "trp_player"),
+			(val_div, ":level", 4),
+			(store_add, ":min_guards", ":level", 1),
+			(store_add, ":max_guards", ":min_guards", 5),
+	        (store_random_in_range, ":random_no", ":min_guards", ":max_guards"),
+	        (val_clamp, ":random_no", 1, 71),
+	        (store_random_in_range, ":watchtower", 1, 3),
+	        (set_visitors, 16, "trp_black_shield_bandit",":random_no"),
+	        (set_visitors, 17, "trp_black_shield_bandit",":random_no"),
+	        (set_visitors, 18, "trp_black_shield_guard", ":random_no"),
+			(set_visitors, 19, "trp_black_shield_scout", ":watchtower"),
+			(set_visitors, 20, "trp_black_shield_scout", ":watchtower"),
+			(set_visitors, 21, "trp_black_shield_scout", ":watchtower"),
+			(set_visitors, 22, "trp_black_shield_scout", ":watchtower"),
+			(set_visitors, 23, "trp_black_shield_scout", ":watchtower"),
+			(set_visitors, 24, "trp_black_shield_scout", ":watchtower"),
+			(set_visitors, 25, "trp_black_shield_scout", ":watchtower"),
+			(set_visitors, 26, "trp_black_shield_scout", ":watchtower"),
+			(set_visitors, 27, "trp_black_shield_scout", ":watchtower"),
+			(set_visitors, 28, "trp_black_shield_scout", ":watchtower"),
+			(set_visitors, 29, "trp_black_shield_scout", ":watchtower"),
+			(set_visitors, 30, "trp_black_shield_scout", ":watchtower"),
+			(set_party_battle_mode),
+	      (set_battle_advantage, 0),
+	      (assign, "$g_battle_result", 0),
+	      (set_jump_mission, "mt_amath_dollen_attack"),
+        (jump_to_scene,":lp_scene"),
+        (change_screen_mission),
+       ]),
+
+# Siege by Easterlings: 0 player
+# 1,2 team_0 infantry
+# 3-15 team_0 archers (1 or 2 each)
+# 16-31 team_1 infantry
+
+      ("bandit_fortress_against_easterlings",[],"Defend the Fortress against the Siege",
+       [(eq, "$g_encountered_party", "p_raft"),
+		(assign, ":lp_scene", "scn_black_shield_fortress_siege_easterlings"),
+		#(assign, "$bs_day_sound", "snd_"),
+		#(assign, "$bs_night_sound", "snd_"),
+		(modify_visitors_at_site,"scn_black_shield_fortress_siege_easterlings"),
+        (reset_visitors),
+        (set_jump_entry, 0),
+        (store_character_level, ":level", "trp_player"),
+		(val_div, ":level", 4),
+		(store_add, ":min_guards", ":level", 2),
+		(store_add, ":max_guards", ":min_guards", 4),
+	    (store_random_in_range, ":random_no", ":min_guards", ":max_guards"),
+	    (store_div, ":low", ":random_no",2),
+	    (store_div, ":mid", ":random_no",4),
+	    (store_div, ":high",":random_no",6),
+      	(assign, ":cur_entry", 16),
+				(try_for_range, ":unused", 0, 5),
+					(set_visitors, ":cur_entry", "trp_rhun_tribal_warrior",":low"),
+					(val_add, ":cur_entry", 1),
+				(try_end),
+				(assign, ":cur_entry", 21),
+				(try_for_range, ":unused", 0, 5),
+					(set_visitors, ":cur_entry", "trp_rhun_vet_infantry",":low"),
+					(val_add, ":cur_entry", 1),
+				(try_end),
+				(assign, ":cur_entry", 26),
+				(try_for_range, ":unused", 0, 3),
+					(set_visitors, ":cur_entry", "trp_infantry_of_the_ox",":mid"),
+					(val_add, ":cur_entry", 1),
+				(try_end),
+				(assign, ":cur_entry", 29),
+				(try_for_range, ":unused", 0, 3),
+					(set_visitors, ":cur_entry", "trp_dorwinion_noble_of_rhun", ":high"),
+					(val_add, ":cur_entry", 1),
+				(try_end),
+	      (set_battle_advantage, 0),
+	      (assign, "$g_battle_result", 0),
+	      (set_jump_mission, "mt_amath_dollen_defend"),
+        (jump_to_scene,":lp_scene"),
+        (change_screen_mission),
+       ]),
+
+		("bandit_fortress_spirits",[(is_currently_night)],"Go talk with the spirits.",
+       [(set_jump_mission, "mt_amath_dollen_spirit"),
+				(eq, "$g_encountered_party", "p_raft"),
+				(assign, ":lp_scene", "scn_black_shield_fortress"),
+				(modify_visitors_at_site,":lp_scene"),
+		    (reset_visitors),
+		    (set_jump_entry, 1),
+		    (set_visitor, 1, "trp_player"),
+		    (assign, ":cur_entry", 3),
+				(try_for_range, ":unused", 0, 10),
+					(set_visitor, ":cur_entry", "trp_black_shield_scout"),
+					(val_add, ":cur_entry", 1),
+				(try_end),
+				(assign, ":cur_entry", 14),
+				(try_for_range, ":unused", 0, 10),
+					(set_visitor, ":cur_entry", "trp_black_shield_bandit"),
+					(val_add, ":cur_entry", 1),
+				(try_end),
+        (set_visitor, 29, "trp_dorwinion_spirit_leader"),
+        (set_visitors, 30, "trp_dorwinion_spirit",2),
+        (set_visitors, 31, "trp_dorwinion_spirit",2),
+        (jump_to_menu, "mnu_amath_dollen_fortress"),
+        (jump_to_scene,":lp_scene"),
+        (change_screen_mission),
+       ]),
+
+	 ("formations_test" ,[],"Formations Test",
+		[(assign, "$g_custom_battle_scenario", 98),(jump_to_menu, "mnu_custom_battle_2"),]),
+
+     ("leave_amath_dollen_fortress",[],"Leave for now.",[(change_screen_return)]),
+	]
+),
+	
+## Kham - Spears of bladorthin - Raft Men - End
+
+## Kham - Gondor Reinforcement Event Menu - Start
+
+("gondor_reinforcement_event",0,
+   "^^^^^The beacons of Gondor are lit, Minas Tirith calls for aid!^^The lords of the southern fiefs will now march north to defend the White City against the coming darkness.",
+    "none",
+    [   (set_background_mesh, "mesh_ui_default_menu_window"),
+        (set_fixed_point_multiplier, 100),
+        (position_set_x, pos0, 65),
+        (position_set_y, pos0, 30),
+        (position_set_z, pos0, 170),
+        (set_game_menu_tableau_mesh, "tableau_faction_note_mesh_banner", "fac_gondor", pos0)],
+   	[("gondor_reinforcement_event_close", [], "Close", [(change_screen_return)]),
+   	
+]),
+
+## Kham - Gondor Reinforcement Event Menu - END
+## Kham - Gondor Beacons Menu - Start
+
+("gondor_beacons",0,
+   "You look up at {s1}, one of the warning beacons of Gondor, used to raise the alarm in northern and southern Gondor.",
+    "none",
+    [   (set_background_mesh, "mesh_ui_default_menu_window"),
+        (str_store_party_name, s1, "$g_encountered_party"),
+    ],
+   	[("gondor_beacons_close", [], "Leave...", [(change_screen_return)]),
+   	
+]),
+
+## Kham - Gondor Beacons Menu - END
+
 ( "auto_return_to_map",0,"stub","none",[(change_screen_map)],[]),
 #MV: hackery to get around change_screen_exchange_with_party limitations
 ( "auto_player_garrison",0,"stub","none",
@@ -7987,9 +8542,9 @@ game_menus = [
 		(try_end),
 		(try_begin),
 			(this_or_next|eq, "$players_kingdom", "fac_gondor"),
-			(this_or_next|eq, "$players_kingdom", 	 "fac_dale"),
-			(this_or_next|eq, "$players_kingdom", 	"fac_dwarf"),
-			(			   eq, "$players_kingdom", 	"fac_rohan"),
+			(this_or_next|eq, "$players_kingdom", "fac_dale"),
+			(this_or_next|eq, "$players_kingdom", "fac_dwarf"),
+			(             eq, "$players_kingdom", "fac_rohan"),
 			(str_store_string, s10, "@On your way to your faction's capital, you set upon some orcs raiding a caravan."),
 		(else_try),
 			(this_or_next|eq, "$players_kingdom", "fac_isengard"),
@@ -7999,26 +8554,26 @@ game_menus = [
 			(this_or_next|eq, "$players_kingdom", "fac_dunland"),
 			(this_or_next|eq, "$players_kingdom", "fac_rhun"),
 			(this_or_next|eq, "$players_kingdom", "fac_umbar"),
-			(			   eq, "$players_kingdom", "fac_guldur"),
+			(             eq, "$players_kingdom", "fac_guldur"),
 			(str_store_string, s10, "@On your way to your faction's capital, you set upon some orcs raiding a caravan."),
 		(else_try),
 			(this_or_next|eq, "$players_kingdom", "fac_imladris"),
-		 	(this_or_next|eq, "$players_kingdom", 	 "fac_lorien"),
-		 	(this_or_next|eq, "$players_kingdom", 	"fac_woodelf"),
-		 	(			   eq, "$players_kingdom", 	"fac_beorn"),
+		 	(this_or_next|eq, "$players_kingdom", "fac_lorien"),
+		 	(this_or_next|eq, "$players_kingdom", "fac_woodelf"),
+		 	(             eq, "$players_kingdom", "fac_beorn"),
 			(str_store_string,s10,"@On your way to your faction's capital, you set upon some troops waiting to ambush orcs in the forest."),
 		(else_try),
 			(this_or_next|eq, "$players_kingdom", "fac_harad"),
-			(			   eq, "$players_kingdom", 	"fac_khand"),
+			(             eq, "$players_kingdom", "fac_khand"),
 			(str_store_string,s10,"@On your way to Mordor, you hear rustling nearby. You see some Gondor Scouts and ready yourself to warn your party."),
 		(else_try),
 			(str_store_string,s10,"@BUG"),
 		(try_end)],
 	[("start_defend_caravan",
 		[(this_or_next|eq, "$players_kingdom", "fac_gondor"),
-		 (this_or_next|eq, "$players_kingdom", 	 "fac_dale"),
-		 (this_or_next|eq, "$players_kingdom", 	"fac_dwarf"),
-		 (			   eq, "$players_kingdom", 	"fac_rohan")],
+		 (this_or_next|eq, "$players_kingdom", "fac_dale"),
+		 (this_or_next|eq, "$players_kingdom", "fac_dwarf"),
+		 (             eq, "$players_kingdom", "fac_rohan")],
 		"Defend the Caravan!", [
 			(set_jump_mission,"mt_tld_caravan_help"),
 		    (modify_visitors_at_site,"scn_starting_quest"),
@@ -8037,7 +8592,7 @@ game_menus = [
 		      	(try_end),
 		      (faction_get_slot, ":tier_1_troop", "$assist", slot_faction_tier_1_troop),
 		      (faction_get_slot, ":tier_2_troop", "$assist", slot_faction_tier_2_troop),
-		      (set_visitor,0,"trp_player"),
+		      (set_visitor, 0,"trp_player"),
 		      (set_visitors,2,":tier_1_troop", 7),
 		      (set_visitors,4,":tier_2_troop", 4),
 		      (set_visitors,6,"trp_start_quest_caravaneer", 1),
@@ -8062,7 +8617,7 @@ game_menus = [
 		 (this_or_next|eq, "$players_kingdom", "fac_dunland"),
 		 (this_or_next|eq, "$players_kingdom", "fac_rhun"),
 		 (this_or_next|eq, "$players_kingdom", "fac_umbar"),
-		 (			   eq, "$players_kingdom", "fac_guldur"),],
+		 (             eq, "$players_kingdom", "fac_guldur"),],
 		"Raid the Caravan!", [
 			(set_jump_mission,"mt_tld_caravan_help"),
 		    (modify_visitors_at_site,"scn_starting_quest"),
@@ -8369,44 +8924,53 @@ game_menus = [
 	          (assign, ":bandit_troop_2", "trp_warg_rider_of_gorgoroth"),
 	        (try_end),
 
-	 #Randomize Scene
-	        (store_random_in_range, ":random_scene", 1, 3),
-	        (try_begin),
-	        	(eq, ":random_scene",1),
-	        	(modify_visitors_at_site, "scn_village_1"), ## Need new scene - Kham
+		#Set Which Scene Village is at
+	 	## Get Region of Village
+		 	(try_begin),
+			 	(is_between, "$current_player_region", region_harrowdale, region_misty_mountains),
+	        	(assign, ":village_scene", "scn_village_rohan"),
 	        (else_try),
-	        	(modify_visitors_at_site, "scn_village_3"),
-	        (try_end),
+	        	(is_between, "$current_player_region", region_pelennor, region_harrowdale),
+	        	(assign, ":village_scene", "scn_village_gondor"),
+	        (else_try),
+	        	(eq, "$current_player_region", region_anduin_banks),
+	        	(assign, ":village_scene", "scn_village_anduin"),
+	        (else_try),
+	        	(this_or_next|eq, "$current_player_region", region_above_mirkwook),
+	        	(			  eq, "$current_player_region", region_grey_mountains),
+	        	(assign, ":village_scene", "scn_village_north"),
+	 #Randomize Scene
+	 		(else_try),
+		        (store_random_in_range, ":random_scene", 1, 3),
+		        (try_begin),
+		        	(eq, ":random_scene",1),
+		        	(assign, ":village_scene", "scn_village_1"), ## Need new scene - Kham
+		        (else_try),
+		        	(assign, ":village_scene", "scn_village_3"),
+		        (try_end),
+		    (try_end),
 
 	 #Set Entry and Number of Enemies / Villagers
 	        (reset_visitors),
+	        (modify_visitors_at_site, ":village_scene"),
 	        (store_character_level, ":level", "trp_player"),
 	        (val_div, ":level", 2),
-	        (store_add, ":min_bandits", ":level", 16),
-	        (store_add, ":max_bandits", ":min_bandits", 6),
+	        (store_add, ":min_bandits", ":level", 18),
+	        (store_add, ":max_bandits", ":min_bandits", 10),
 	        (store_random_in_range, ":random_no", ":min_bandits", ":max_bandits"),
 	        (set_jump_entry, 0), 
 	        (set_visitor, 0, "trp_player"),
+	        (gt, ":bandit_troop_1", 0),
 	        (set_visitors, 16, ":bandit_troop_1", ":random_no"),
-	        (assign, ":num_villagers", ":max_bandits"),
-	        (val_div, ":num_villagers",2),
-	        (set_visitors, 10, "trp_farmer", ":num_villagers"),
-	        (set_visitors, 11, "trp_peasant_woman", ":num_villagers"),
-	        (val_div,":random_no",4),
+	        (set_visitors, 10, "trp_farmer", 8),
+	        (set_visitors, 11, "trp_peasant_woman", 8),
+	        (val_div,":random_no",3),
 	        (set_visitors, 18, ":bandit_troop_2", ":random_no"),
 	        (set_party_battle_mode),
 	        (set_battle_advantage, 0),
 	        (assign, "$g_battle_result", 0),
 	        (set_jump_mission,"mt_village_attack_bandits"),
-	        (try_begin),
-	        	(eq,":random_scene",1),
-	        	(jump_to_scene, "scn_village_1"),
-	        (else_try),
-	        	(jump_to_scene,"scn_village_3"),
-	        (try_end),
-	        #(assign, "$g_next_menu", "mnu_village_quest_result"),
-	        #(jump_to_menu, "mnu_battle_debrief"),
-	     	#(assign, "$g_mt_mode", vba_normal),
+	       	(jump_to_scene, ":village_scene"),
 	        (change_screen_mission),
 	       ]),
 
@@ -8424,42 +8988,60 @@ game_menus = [
 			    (neg|is_between, ":raid_village_faction", kingdoms_begin, kingdoms_end),  ## For some reason, the search counts 'ruins' etc. This takes them out! 
 			    (assign,":raid_village_faction", "fac_rohan"), ## Rohan is the closest to areas where elves would mostly be.
 	     	(end_try),
+	     	(faction_get_slot, ":tier_1_troop", ":raid_village_faction", slot_faction_tier_1_troop),
 	     	(faction_get_slot, ":tier_2_troop", ":raid_village_faction", slot_faction_tier_2_troop),
-	        (assign, ":guard_troop_1", "trp_farmer"),
+	        (assign, ":guard_troop_1", ":tier_1_troop"),
 	        (assign, ":guard_troop_2", ":tier_2_troop"),
-	        (store_random_in_range, ":random_scene", 1, 3),
-	        (try_begin),
-	        	(eq, ":random_scene",1),
-	        	(modify_visitors_at_site, "scn_village_1"), ## Need new scene - Kham
+	        (assign, ":guard_troop_3", "trp_farmer"),
+		
+		#Set Which Scene Village is at
+	 	## Get Region of Village
+		 	(try_begin),
+			 	(is_between, "$current_player_region", region_harrowdale, region_misty_mountains),
+	        	(assign, ":village_scene", "scn_village_rohan"),
 	        (else_try),
-	        	(modify_visitors_at_site, "scn_village_3"),
-	        (try_end),
+	        	(is_between, "$current_player_region", region_pelennor, region_harrowdale),
+	        	(assign, ":village_scene", "scn_village_gondor"),
+	        (else_try),
+	        	(eq, "$current_player_region", region_anduin_banks),
+	        	(assign, ":village_scene", "scn_village_anduin"),
+	        (else_try),
+	        	(this_or_next|eq, "$current_player_region", region_above_mirkwook),
+	        	(			  eq, "$current_player_region", region_grey_mountains),
+	        	(assign, ":village_scene", "scn_village_north"),
+	 #Randomize Scene
+	 		(else_try),
+		        (store_random_in_range, ":random_scene", 1, 3),
+		        (try_begin),
+		        	(eq, ":random_scene",1),
+		        	(assign, ":village_scene", "scn_village_1"), ## Need new scene - Kham
+		        (else_try),
+		        	(assign, ":village_scene", "scn_village_3"),
+		        (try_end),
+		    (try_end),
 	
 	#Set Entry and Number of Defenders   
 	        (reset_visitors),
+	        (modify_visitors_at_site, ":village_scene"),
 	        (store_character_level, ":level", "trp_player"),
 	        (val_div, ":level", 2),
-	        (store_add, ":min_guards", ":level", 16),
+	        (store_add, ":min_guards", ":level", 10),
 	        (store_add, ":max_guards", ":min_guards", 6),
 	        (store_random_in_range, ":random_no", ":min_guards", ":max_guards"),
-	        (set_jump_entry, 0), 
-	        (set_visitor, 0, "trp_player"),
-	        (set_visitors, 18, ":guard_troop_1", ":random_no"),
-	        (val_div,":random_no",4),
-	        (set_visitors, 16, ":guard_troop_2", ":random_no"),
+	        (set_jump_entry, 16), 
+	        (set_visitor, 16, "trp_player"),
+	        (gt, ":guard_troop_1",0),
+	        (set_visitors, 11, ":guard_troop_1", ":random_no"),
+	        (val_div,":random_no",6),
+	        (gt, ":guard_troop_2",0),
+	        (set_visitors,11, ":guard_troop_2", ":random_no"),
+	        (gt, ":guard_troop_3",0),
+	        (set_visitors, 10, ":guard_troop_3", 6),
 	        (set_party_battle_mode),
 	        (set_battle_advantage, 0),
 	        (assign, "$g_battle_result", 0),
-	        (set_jump_mission,"mt_village_attack_bandits"),
-	        (try_begin),
-	        	(eq,":random_scene",1),
-	        	(jump_to_scene, "scn_village_1"),
-	        (else_try),
-	        	(jump_to_scene,"scn_village_3"),
-	        (end_try),
-	       # (assign, "$g_next_menu", "mnu_village_quest_result"),
-	       # (jump_to_menu, "mnu_battle_debrief"),
-	     #	(assign, "$g_mt_mode", vba_normal),
+	        (set_jump_mission,"mt_village_attack_farmers"),
+	        (jump_to_scene, ":village_scene"),
 	        (change_screen_mission),
 	       ]),
 	   ("go_away",[],"Leave them alone",[(change_screen_map)]),
@@ -8527,23 +9109,21 @@ game_menus = [
 	     	(quest_get_slot, ":scout_camp_faction", "qst_destroy_scout_camp", slot_quest_target_faction),
 	     	
 	 #Set Scout Camp Defender Faction
-	 		(faction_get_slot, ":tier_2_troop", ":scout_camp_faction", slot_faction_tier_2_troop),
-	     	(faction_get_slot, ":tier_3_troop", ":scout_camp_faction", slot_faction_tier_3_troop),
-	     	(faction_get_slot, ":tier_4_troop", ":scout_camp_faction", slot_faction_tier_4_troop),
-	     	(faction_get_slot, ":tier_5_troop", ":scout_camp_faction", slot_faction_tier_5_troop),
+	 		(faction_get_slot, ":tier_ranged_troop", 	 ":scout_camp_faction", slot_faction_ranged_troop),
+	     	(faction_get_slot, ":tier_3_troop", 		 ":scout_camp_faction", slot_faction_tier_3_troop),
+	     	(faction_get_slot, ":tier_4_troop", 		 ":scout_camp_faction", slot_faction_tier_4_troop),
+	     	(faction_get_slot, ":tier_5_troop", 		 ":scout_camp_faction", slot_faction_tier_5_troop),
 	        (assign, ":guard_troop_1", ":tier_3_troop"),
 	        (assign, ":guard_troop_2", ":tier_4_troop"),
 	        (assign, ":guard_troop_3", ":tier_5_troop"),
-	        (assign, ":watchtower_troop",":tier_2_troop"),
+	        (assign, ":watchtower_troop",":tier_ranged_troop"),
 
-	 #Set Which Scene Scout Camp is at
-	 	## Get Theater of Scout Camp
-	 		(faction_get_slot, ":home_theater", ":scout_camp_faction", slot_faction_home_theater),
-	 		(store_character_level, ":level", "trp_player"),
-		 		(try_begin),
-			 		(eq, ":home_theater", theater_SW),
-			
-			## Get Side of Player to check which scout camp to spawn 	
+	 #Get Player Level
+	       	(store_character_level, ":level", "trp_player"),
+				
+	 ## Get Side & Region of Scout Camp to check which scene to spawn 	
+			(try_begin),
+				(is_between, "$current_player_region", region_harrowdale, region_misty_mountains),
 			 		(try_begin),
 			 			(is_between, ":level", 11,17),
 		 				(faction_slot_eq, "$players_kingdom", slot_faction_side, faction_side_good),
@@ -8563,9 +9143,11 @@ game_menus = [
 			 			(modify_visitors_at_site, "scn_scout_camp_rohan_good_big"),
 			 			(assign, ":scout_camp_scene", "scn_scout_camp_rohan_good_big"),
 			 		(try_end),
+			 		#(display_message, "@DEBUG: Rohan Region"),
 			 	(else_try),
-			## Get Theater of Scout Camp
-			 		(eq, ":home_theater", theater_SE),
+			
+			## Get Region of Scout Camp
+				(is_between, "$current_player_region", region_pelennor, region_harrowdale),
 
 			## Get Side of Player to check which scout camp to spawn 	
 			 		(try_begin),
@@ -8587,10 +9169,11 @@ game_menus = [
 			 			(modify_visitors_at_site, "scn_scout_camp_gondor_good_big"),
 			 			(assign, ":scout_camp_scene", "scn_scout_camp_gondor_good_big"),
 			 		(try_end),
+			 		#(display_message, "@DEBUG: Gondor Region"),
 			 	(else_try),
-
-			## Get Theater of Scout Camp
-			 		(eq, ":home_theater", theater_C,),
+			
+			## Get Region of Scout Camp
+				(is_between, "$current_player_region", region_n_mirkwood, region_above_mirkwook),
 
 
 			## Get Side of Player to check which scout camp to spawn 	
@@ -8613,6 +9196,7 @@ game_menus = [
 			 			(modify_visitors_at_site, "scn_scout_camp_mirk_good_big"),
 			 			(assign, ":scout_camp_scene", "scn_scout_camp_mirk_good_big"),
 			 		(try_end),
+			 		#(display_message, "@DEBUG: Mirkwood Region"),
 
 			##North is the only region left
 			 	(else_try),
@@ -8635,29 +9219,38 @@ game_menus = [
 			 			(modify_visitors_at_site, "scn_scout_camp_north_good_big"),
 			 			(assign, ":scout_camp_scene", "scn_scout_camp_north_good_big"),
 			 		(try_end),
+			 		#(display_message, "@DEBUG: North Region"),
 			 	(try_end),
 	#Set Entry and Number of Defenders   
+	#0, player
+	#16 & 18 - where at least 10 troops will spawn per spawn point
+	#20,21,22,23,24 - Watchtower / Archer guards (1 troop per spawn point)
 	        (reset_visitors),
 	        (set_jump_entry, 0), 
 	        (set_visitor, 0, "trp_player"),
 	        (try_begin),
 		        (is_between, ":level",11,17),
-		       	(val_div, ":level", 2),
-		        (store_add, ":min_guards", ":level", 5),
-		        (store_add, ":max_guards", ":min_guards", 6),
+		       	(val_div, ":level", 3),
+		        (store_add, ":min_guards", ":level", 3),
+		        (store_add, ":max_guards", ":min_guards", 3),
 		        (store_random_in_range, ":random_no", ":min_guards", ":max_guards"),
+		        (gt, ":guard_troop_1", 0),
 		        (set_visitors, 18, ":guard_troop_1", ":random_no"),
 		        (val_div,":random_no",4),
+		        (gt, ":guard_troop_2", 0),
 		        (set_visitors, 16, ":guard_troop_2", ":random_no"),
 	        (else_try),
-	        	(val_div, ":level", 4),
-		        (store_add, ":min_guards", ":level", 5),
-		        (store_add, ":max_guards", ":min_guards", 6),
+	        	(val_div, ":level", 5),
+		        (store_add, ":min_guards", ":level", 3),
+		        (store_add, ":max_guards", ":min_guards", 3),
 		        (store_random_in_range, ":random_no", ":min_guards", ":max_guards"),
+		        (gt, ":guard_troop_2",0),
 		        (set_visitors, 18, ":guard_troop_2", ":random_no"),
 		        (val_div,":random_no",4),
+		        (gt, ":guard_troop_3",0),
 		        (set_visitors, 16, ":guard_troop_3", ":random_no"),
 	        (try_end),
+	        (gt, ":watchtower_troop", 0),
 	        (set_visitor, 20, ":watchtower_troop"),
 	        (set_visitor, 21, ":watchtower_troop"),
 	        (set_visitor, 22, ":watchtower_troop"),
@@ -9005,19 +9598,25 @@ game_menus = [
 	(store_current_day, ":day"),
 	(quest_set_slot, "qst_oath_of_vengeance", 1, ":day"),
 	(quest_set_slot, "qst_oath_of_vengeance", 2, ":target"), # target faction
-	(assign,":count", 0), # count and store initial killcount of target faction' parties
-	(try_for_range, ":ptemplate", "pt_gondor_scouts", "pt_kingdom_hero_party"),
-		(spawn_around_party,"p_main_party",":ptemplate"),
-		(store_faction_of_party,":fac", reg0),
-		(remove_party, reg0),
-		(eq, ":fac", ":target"),
-		(store_num_parties_destroyed_by_player, ":n", ":ptemplate"),
-		(val_add,":count",":n"),
-	(try_end),
-	(quest_set_slot, "qst_oath_of_vengeance", 3, ":count"), # counter for destroyed parties of target faction at quest start
+	
+	#Kham - Oath of Vengeance Refactor Start
+	#(assign,":count", 0), # count and store initial killcount of target faction' parties
+	#(try_for_range, ":ptemplate", "pt_gondor_scouts", "pt_kingdom_hero_party"),
+	#	(spawn_around_party,"p_main_party",":ptemplate"),
+	#	(store_faction_of_party,":fac", reg0),
+	#	(remove_party, reg0),
+	#	(eq, ":fac", ":target"),
+	#	(store_num_parties_destroyed_by_player, ":n", ":ptemplate"),
+	#	(val_add,":count",":n"),
+	#(try_end),
+	#(quest_set_slot, "qst_oath_of_vengeance", 3, ":count"), # counter for destroyed parties of target faction at quest start
+	
+	(assign, "$oath_kills",0),
+	#Kham - Oath of Vengeance Refactor END
+
 	(party_set_slot, ":mound", slot_mound_state, 3), # no more oaths from here
         (setup_quest_text, "qst_oath_of_vengeance"),
-        (str_store_string, s2, "@Enraged by the death of {s4}, you have sworn an oath of vengeance upon the forces of {s3}. You must now destroy as many of the armies of {s3} as possible in the coming days. You are keenly aware that your followers have witnessed this oath and you do not wish to become known as an oathbreaker. An orgy of bloodletting must now begin!"),
+        (str_store_string, s2, "@Enraged by the death of {s4}, you have sworn an oath of vengeance upon the forces of {s3}. You must now destroy as many of the troops of {s3} as possible in the coming days. You are keenly aware that your followers have witnessed this oath and you do not wish to become known as an oathbreaker. An orgy of bloodletting must now begin!"),
 	(call_script, "script_start_quest", "qst_oath_of_vengeance", "trp_player"),
 	],[
     ("leave_mound", [], "Leave_the_mound.", [(leave_encounter),(change_screen_return)]),

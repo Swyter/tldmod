@@ -12,7 +12,7 @@ pt_looters|部落半兽人
 pt_forest_bandits|掉队的半兽人士兵
 pt_mountain_bandits|野生半兽人
 pt_steppe_bandits|登兰德流浪者
-pt_sea_raiders|昂巴海盜叛徒
+pt_sea_raiders|昂巴海盗叛徒
 pt_deserters|逃兵
 pt_merchant_caravan|商人车队
 pt_troublesome_bandits|棘手的半兽人
@@ -27,10 +27,10 @@ pt_sacrificed_messenger|被牺牲的信差
 pt_gandalf|单骑
 pt_nazgul|单骑
 pt_gondor_scouts|刚铎斥候
-pt_blackroot_auxila|黑谷辅兵
-pt_lamedon_auxila|拉密顿辅兵
-pt_lossarnach_auxila|罗萨那奇辅兵
-pt_pinnath_gelin_auxila|皮那斯杰林辅兵
+pt_blackroot_auxila|黑谷辅兵队
+pt_lamedon_auxila|拉密顿辅兵队
+pt_lossarnach_auxila|罗萨那奇辅兵队
+pt_pinnath_gelin_auxila|皮那斯杰林辅兵队
 pt_ranger_scouts|游侠斥候
 pt_rohan_scouts|洛汗斥候
 pt_lorien_scouts|罗斯洛立安斥候
@@ -137,5 +137,5 @@ pt_legion_udun|乌顿军团
 pt_legion_gorgoroth|葛哥洛斯军团
 pt_legion_barad_dur|邪黑塔军团
 pt_beorn_messenger|波宁信差
-pt_village|村民
+pt_village|村庄
 pt_ring_hunters|魔戒猎手

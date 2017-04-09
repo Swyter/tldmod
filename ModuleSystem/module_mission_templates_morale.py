@@ -6,6 +6,8 @@ from header_sounds import *
 from header_music import *
 from module_constants import *
 
+from module_info import wb_compile_switch as is_a_wb_mt
+
 # This file contains a heavily modified and improved version
 # of Chel's morale scripts. If you modify it, please leave a 
 # note telling what you did. -CC
@@ -147,8 +149,13 @@ tld_morale_triggers = [
 					#(assign, reg1, ":die_roll"),
 					#(assign, reg2, ":times_rallied"),
 					(agent_get_troop_id, ":troop", ":agent"),
+					(troop_get_type, reg65, ":troop"),
+                    (try_begin),
+                       (neq, reg65, 1), #not female
+                       (assign, reg65, 0), #make it male for strings
+                    (try_end),
 					(str_store_troop_name, s5, ":troop"),
-					(display_message, "@{s5} rallies his troops!", color_good_news),
+					(display_message, "@{s5} rallies {reg65?her:his} troops!", color_good_news),
 					(val_add, ":times_rallied", 1),
 					(agent_set_slot, ":agent", slot_agent_rallied, ":times_rallied"),
 					(call_script, "script_troop_get_cheer_sound", ":troop"),
@@ -205,8 +212,13 @@ tld_morale_triggers = [
 					(assign, reg1, ":die_roll"),
 					(assign, reg2, ":times_rallied"),
 					(agent_get_troop_id, ":troop", ":agent"),
+					(troop_get_type, reg65, ":troop"),
+                    (try_begin),
+                       (neq, reg65, 1), #not female
+                       (assign, reg65, 0), #make it male for strings
+                    (try_end),
 					(str_store_troop_name, s5, ":troop"),
-					(display_message, "@{s5} rallies his troops!", color_bad_news),
+					(display_message, "@{s5} rallies {reg65?her:his} troops!", color_bad_news),
 					(val_add, ":times_rallied", 1),
 					(agent_set_slot, ":agent", slot_agent_rallied, ":times_rallied"),
 					(call_script, "script_troop_get_cheer_sound", ":troop"),
@@ -273,8 +285,18 @@ tld_morale_triggers = [
 			(agent_is_alive, ":cur_agent"),
 			(try_begin),
 				(agent_slot_eq,":cur_agent",slot_agent_routed,1),
+				
+				] + ((is_a_wb_mt==1) and [
+
+		        ## WB has an operation for fleeing - Kham
+		        (agent_start_running_away, ":cur_agent"),
+		            
+		        ] or [
 				(call_script, "script_find_exit_position_at_pos4", ":cur_agent"),
 				(agent_set_scripted_destination, ":cur_agent", pos4, 1),
+				
+				]) + [
+
 				(agent_get_position, pos2, ":cur_agent"),
 				(get_distance_between_positions, ":dist", pos4, pos2),
 				(lt, ":dist", 300),

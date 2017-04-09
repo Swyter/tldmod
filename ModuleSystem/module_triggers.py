@@ -1107,6 +1107,12 @@ triggers = [
 			(eq, "$tld_option_cutscenes",1),
 			(jump_to_menu, "mnu_auto_intro_rohan"),
 		(try_end),
+
+    # Reveal Gondor Beacons
+    (try_for_range, ":beacon", "p_amon_din", "p_spawn_points_end"),
+      (enable_party, ":beacon"),
+    (try_end),
+    
 ]),
 	
 (0.5, 0, 0, [],[#(gt,"$g_fangorn_rope_pulled",-100)],[
@@ -1458,51 +1464,68 @@ triggers = [
 
 #check progress on oath quest
 (24, 0, 0, [(check_quest_active, "qst_oath_of_vengeance", 1)],[
-	(quest_get_slot, ":start_killcount", "qst_oath_of_vengeance", 3),
+	#(quest_get_slot, ":start_killcount", "qst_oath_of_vengeance", 3),
 	(quest_get_slot, ":target", "qst_oath_of_vengeance", 2),
 	(quest_get_slot, ":start_day", "qst_oath_of_vengeance", 1),
 	(quest_get_slot, ":source_fac", "qst_oath_of_vengeance", 4),
 	(quest_get_slot, ":hero", "qst_oath_of_vengeance", 5),
+  (quest_get_slot, ":moria", "qst_oath_of_vengeance", 6),
 	(store_current_day, ":day"), 
-	(val_sub, ":day", 5), #checks start after 5 days under oath
+	(val_sub, ":day", 6), #checks start after 5 days under oath
 	(gt, ":day", ":start_day"),
 	
-	(assign,":count", 0), #count current killcount for target faction
-	(try_for_range, ":ptemplate", "pt_gondor_scouts", "pt_kingdom_hero_party"),
-		(spawn_around_party,"p_main_party",":ptemplate"),
-		(store_faction_of_party,":fac", reg0),
-		(remove_party, reg0),
-		(eq, ":fac", ":target"),
-		(store_num_parties_destroyed_by_player, ":n", ":ptemplate"),
-		(val_add,":count",":n"),
-	(try_end),
-	(val_sub, ":count", 3), # need to kill at least 3 target faction parties to succeed
+	#Kham - Oath of Vengeance Refactor START
+  #(assign,":count", 0), #count current killcount for target faction
+	#(try_for_range, ":ptemplate", "pt_gondor_scouts", "pt_kingdom_hero_party"),
+	#	(spawn_around_party,"p_main_party",":ptemplate"),
+	#	(store_faction_of_party,":fac", reg0),
+	#	(remove_party, reg0),
+	#	(eq, ":fac", ":target"),
+	#	(store_num_parties_destroyed_by_player, ":n", ":ptemplate"),
+	#	(val_add,":count",":n"),
+	#(try_end),
+	#(val_sub, ":count", 3), # need to kill at least 3 target faction parties to succeed
 
 	(try_begin),
 		(faction_slot_eq, ":target", slot_faction_state, sfs_active), # CC: Faction must be alive to fail quest, otherwise you suceed.
-		(neg|ge, ":count", ":start_killcount"),
+		#(neg|ge, ":count", ":start_killcount"), - #Kham Refactor Commented Out
+    (neg|ge, "$oath_kills", tld_oath_kills),
 		(call_script, "script_fail_quest", "qst_oath_of_vengeance"),
 		(set_show_messages, 0),
 		(call_script, "script_end_quest", "qst_oath_of_vengeance"),
 		(set_show_messages, 1),
 		#(str_store_faction_name, s1, ":source_fac"),
-		(str_store_troop_name, s1, ":hero"),
-		(display_message, "@You have failed to fulfill your oath of vengeance for {s1}'s heroic death!", color_bad_news),
+    (try_begin),
+      (eq, ":moria",1),
+      (display_message, "@You have failed to fulfill your oath to avenge Balin and his company!", color_bad_news),
+    (else_try),
+  		(str_store_troop_name, s1, ":hero"),
+  		(display_message, "@You have failed to fulfill your oath of vengeance for {s1}'s heroic death!", color_bad_news),
+    (try_end),
 		(call_script, "script_cf_gain_trait_oathbreaker"),
 	(else_try),
-		(faction_slot_eq|neg|this_or_next, ":target", slot_faction_state, sfs_active), # CC: If faction is not active, you have completed the quest.
-		(ge, ":count", ":start_killcount"),
-		(call_script, "script_succeed_quest", "qst_oath_of_vengeance"),
+		#(ge, ":count", ":start_killcount"), #Kham Refactor Commented Out
+		(this_or_next|ge, "$oath_kills", tld_oath_kills),
+    (neg|faction_slot_eq, ":target", slot_faction_state, sfs_active), # CC: If faction is not active, you have completed the quest.
+    (call_script, "script_succeed_quest", "qst_oath_of_vengeance"),
 		(set_show_messages, 0),
 		(call_script, "script_end_quest", "qst_oath_of_vengeance"),
 		(set_show_messages, 1),
 		(call_script, "script_cf_gain_trait_oathkeeper"),
-		(val_sub, ":start_killcount", 3),
-		(val_sub, ":count", ":start_killcount"),
-		(store_mul, reg1, ":count", 4),
+		#(val_sub, ":start_killcount", 3), #Kham Refactor Commented Out
+		#(val_sub, ":count", ":start_killcount"),
+		#(store_mul, reg1, ":count", 4),
 		#(str_store_faction_name, s1, ":source_fac"),
-		(str_store_troop_name, s1, ":hero"),
-		(display_message, "@You have fulfilled your oath of vengeance for {s1}'s heroic death!", color_good_news),
+
+    #Kham - Oath of Vengeance Refactor END
+
+    (try_begin),
+      (eq, ":moria",1),
+      (display_message, "@You have fulfilled your oath to avenge Balin and his company!", color_good_news),
+    (else_try),
+  		(str_store_troop_name, s1, ":hero"),
+  		(display_message, "@You have fulfilled your oath of vengeance for {s1}'s heroic death!", color_good_news),
+    (try_end),
 		(call_script, "script_increase_rank", ":source_fac", reg1),
 	(try_end),
 ]),
@@ -1510,7 +1533,25 @@ triggers = [
 # check for mutiny when orcs in party
 (2, 0, 2, [
 	(neg|faction_slot_eq, "$players_kingdom", slot_faction_side, faction_side_good),
-	(val_sub, "$mutiny_counter",2),
+  
+  ## Kham - Reduce rate of mutiny by level and rank (player faction, I could also look at player's rank in mordor & isengard, but lets start with this)
+  (store_character_level, ":level","trp_player"),
+  (call_script, "script_get_faction_rank", "$players_kingdom"),
+  (assign, ":rank", reg0),
+  (store_skill_level, reg1, "skl_leadership", "trp_player"),
+  (this_or_next|gt, reg1,     5),
+  (this_or_next|gt, ":level",13),
+  (             gt, ":rank",  3),
+	(try_begin), ## Reduce deduction by 1 when player is level 12 or rank 3, just to ease it a bit, before disappearing completely.
+    (this_or_next|eq, reg1,     5),
+    (this_or_next|eq, ":level",13),
+    (             eq, ":rank",  3),
+    (val_sub, "$mutiny_counter",1),
+  (else_try),
+    (val_sub, "$mutiny_counter",2),
+  (try_end),
+
+  ## Kham Changes END
 	(le, "$mutiny_counter",0),
 	(party_get_num_companion_stacks, ":num_stacks","p_main_party"),
 	(assign, ":orcs", 0),
@@ -1522,7 +1563,7 @@ triggers = [
 		(party_stack_get_size, reg1, "p_main_party",":stack_no"),
 		(val_add, ":orcs", reg1),
 	(try_end),
-	(store_skill_level, reg1, "skl_persuasion", "trp_player"), # persuasion neutralizes 5 orcs per level
+	(store_skill_level, reg1, "skl_leadership", "trp_player"), # persuasion neutralizes 5 orcs per level ##Kham - Change to Leadership instead, as there is nothing else persuasion is used for
 	(val_mul, reg1, 5),
 	(val_sub, ":orcs", reg1),
 	(troop_get_type, reg1, "trp_player"),

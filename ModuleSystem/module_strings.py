@@ -2827,10 +2827,10 @@ We apologize sincerely if you contributed your suggestions and feedback but were
 ("shortname_region_unknown", "an unnamed region"), # -1
 
 ("shortname_region_pelennor", "Pelennor Fields"), #0
-("shortname_region_subfac_pelargir", "Fiefdom of Lebennin"), # pelargir
+("shortname_region_subfac_pelargir", "the Fiefdom of Lebennin"), # pelargir
 ("shortname_region_subfac_dol_amroth", "Belfalas"), #subfac_dol_amroth
 ("shortname_region_subfac_ethring", "Ringló Vale"), # subfac_ethring
-("shortname_region_subfac_lossarnach", "Fiefdom of Lossarnach"),
+("shortname_region_subfac_lossarnach", "the Fiefdom of Lossarnach"),
 ("shortname_region_subfac_pinnath_gelin", "the region of Pinnath Gelin"),
 ("shortname_region_subfac_blackroot", "the Fiefdom of Lamedon"), # subfac_blackroot
 ("shortname_region_n_ithilien", "North Ithilien"),
@@ -2945,6 +2945,8 @@ We apologize sincerely if you contributed your suggestions and feedback but were
 ("trait_title_fell_beast", "Fell_Beast"),
 ("trait_desc_fell_beast", "Your_hide_is_riven_with_the_knotted_scars_of_countless_battles_and_your_evil_will_is_likewise_hard_and_unyielding._Even_by_the_standards_of_orc,_uruk_and_troll-kind_you_are_judged_a_fell_and_dangerous_beast._Those_who_serve_you_cry_your_name_in_joy_when_you_take_to_the_field._You_are_an_avatar_of_war_itself_and_there_is_little_you_fear."),
 
+("trait_title_butcher", "Butcher"),
+("trait_desc_butcher", "Experience_has_honed_your_skill_in_extracting_more_meat_from_the_flesh_of_your_enemies._You_gain_an_extra_pound_of_flesh_every_time_you_slaughter_one_of_your_prisoners_for_meat."),
 # END Traits
 
 # BEGIN Wound Strings

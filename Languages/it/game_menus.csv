@@ -20,13 +20,13 @@ mno_build_your_own_scene|** Costruisci il tuo personale scenario per TLD **
 menu_tutorial|^^TLD ha molte features sconosciute al M&B nativo. Queste sono descritte in alcuni dettagli nel file PDF incluso nel file scaricato. Per il tutorial sulle meccaniche base di gioco, fare riferimento al native.
 mno_go_back_dot|Torna Indietro
 mno_action_view_troop_trees|Visualizza alberi truppe.
-mno_view_upkeep_costs|Guarda costi di mantenimento
+mno_view_upkeep_costs|Controlla i costi di mantenimento
 mno_view_character_report|Consulta il rapporto sul personaggio
 mno_view_party_size_report|Consulta il rapporto sulle dimensioni della compagnia
 mno_view_morale_report|Consulta il rapporto sul morale della compagnia
 mno_view_character_report_02|Controlla stato dei PNG
 mno_view_faction_strengths_report|Consulta il resoconto sulla potenza delle fazioni
-mno_view_traits_report|Consulta i tratti
+mno_view_traits_report|Consulta i tratti personali.
 mno_resume_travelling|Riprendi il viaggio
 mno_custom_battle_go|Inizia
 mno_leave_custom_battle_2|Annulla
@@ -67,7 +67,7 @@ mno_start_eye|Sauron di Mordor, il Signore degli Anelli
 mno_start_hand|Saruman di Isengard, la Mano Bianca
 menu_start_eye|^^^^^^^^^Il tuo signore è il Grande Occhio^Scegli la tua razza
 mno_start_or|Un Orco, servendo il Grande Occhio
-mno_start_ur|Un Uruk, la nuova razza di Orchi
+mno_start_ur|Un Uruk-Hai, la nuova razza di Orchi
 mno_start_em|Un Uomo, corrotto da Sauron
 menu_start_hand|^^^^^^^^^Il tuo signore è la Mano Bianca^Scegli la tua razza
 mno_start_whor|Un Orco, servendo la Mano Bianca
@@ -90,14 +90,14 @@ menu_start_gondor|^^^^^^^^^^Da quale parte di Gondor provieni ?
 mno_start_mt|Minas Tirith, la Capitale
 mno_start_ls|Lossarnach, il feudo della Valle dei Fiori
 mno_start_la|Lamedon, il feudo degli uomini della Montagna
-mno_start_pg|Pinnath Gelin, il feudo dei Verdi Colli
+mno_start_pg|Pinnath Gelin, il feudo delle Verdi Colline
 mno_start_do|Dol Amroth, il feudo dei Cavalieri del Cigno
 mno_start_pe|Pelargir, il feudo Costiero
-mno_start_bl|La Valle della Radice Nera, il feudo degli Arcieri
+mno_start_bl|La Valle Cepponero, il feudo degli Arcieri
 menu_start_eye_man|^^^^^^^^^^Seleziona la tua gente:
 mno_start_hr|Haradrim, il popolo del deserto del Sud
 mno_start_bn|Númenóreani Neri, i rinnegati dell'Ovest
-mno_start_um|Umbar, i pirati dei Mari del Sud
+mno_start_um|Umbar, i Corsari dei Mari del Sud
 mno_start_rh|Rhûn, i barbari dell'Est
 mno_start_kh|Khand, i selvaggi popoli del Sud-Est
 menu_start_eye_orc|^^^^^^^^^^Dove ti nascondi ?
@@ -182,9 +182,9 @@ mno_i_shall_surv|Io...devo...sopravvivere !
 menu_end_game|^^^^^La decisione è presa, e consiste nell'abbandonare la tua vita da avventuriero insieme a tutto il resto. Vendi le tue armi e le tue armature, insieme a tutti i tuoi averi, e cavalchi verso il tramonto...
 mno_end_game_bye|Addio.
 menu_cattle_herd|Incontri alcune persone.
-mno_cattle_drive_away|Ordinagli di seguirti.
-mno_cattle_stop|Conducili ad accamparsi.
-mno_leave|Abbandona.
+mno_cattle_drive_away|Ordina di seguirti.
+mno_cattle_stop|Falli accampare.
+mno_leave|Vattene.
 menu_simple_encounter|^^^^^{s2}^Hai {reg22} truppe pronte per la battaglia contro {reg11} delle loro.^^Luogo della battaglia: {s3}{s4}.^^I tuoi ordini ?
 mno_encounter_attack|{reg21?Carica !:Prepariamoci ad affrontarli}.
 mno_encounter_order_attack|Ordina alle tue truppe di {reg21?attaccare:affrontarli} senza di te.
@@ -204,14 +204,14 @@ mno_order_retreat|Fai ritirare i tuoi soldati.
 menu_kingdom_army_quest_report_to_army|{s8} manda a dire che vuole che tu ti unisca alla sua nuova campagna militare. È necessario portare almeno {reg13} truppe per l'esercito, e sei incaricato di arruolare più guerrieri con la dovuta rapidità se non ne hai abbastanza.
 mno_reject|Invia un messaggio in cui dichiari di essere troppo impegnato.
 mno_send_word|Fagli sapere che presto ti unirai a lui.
-menu_kingdom_army_quest_messenger|{s8} manda a dire che vuole parlare con voi di un compito che ha bisogno di eseguire. Egli chiede di andare a consultarlo al più presto possibile..
+menu_kingdom_army_quest_messenger|{s8} manda a dire che vuole parlare con te di un compito che ha bisogno di eseguire. Egli chiede di andare a consultarlo al più presto possibile..
 menu_kingdom_army_quest_join_siege_order|{s8}  manda a dire che si sta per unire l'assedio di {s9} in preparazione di un assalto. Le tue truppe devono prendere {s9} a tutti i costi.
 menu_kingdom_army_follow_failed|Hai disobbedito agli ordini e non sei riuscito a seguire {s8}.  Manda un messaggio che presuppone che tu hai questioni più urgenti, ma mettiti in guardia la sua pazienza non è illimitata.
 menu_battle_debrief|{s11}^Le tue perdite:{s8}{s10}^^Perdite nemiche:{s9}
 mno_inspect_troll|Esamina il troll abbattuto
 menu_pre_join|^^^^^Ti imbatti in una battaglia che vede come avversari {s2} e {s1}. Decidi di...
 mno_pre_join_help_attackers|Muoviti in aiuto di: {s2}.
-mno_pre_join_help_defenders|Corri in soccorso di {s1}.
+mno_pre_join_help_defenders|Soccorri: {s1}.
 mno_pre_join_leave|Non farti coinvolgere.
 menu_join_battle|^^^Assisti {s2} contro {s1}.^ Hai {reg22} truppe pronte per affrontare le {reg11} del nemico.^^Luogo dello scontro: {s3}{s4}.
 mno_join_attack|Carica il nemico.
@@ -235,11 +235,11 @@ mno_join_siege_with_allies|Unisciti al prossimo assalto.
 mno_join_siege_stay_back|Ordina ai tuoi soldati di unirsi al prossimo assalto senza di te.
 menu_moria_must_escape|^^Il libro sembra essere un resoconto dell'ultimo tentativo dei nani di ristabilirsi a Moria. Tentativo che apparentemente sembra essersi concluso con una morte terribile per tutti i soggetti coinvolti. Sfogliando le pagine, ti imbatti nelle parole 'vero argento ! Studiando il libro improvvisamente comprendi che si tratta della descrizione delle scorte segrete naniche e che queste dovrebbero trovarsi nei livelli inferiori. Hah ! Non sarebbe fantastico riportare alla luce il Mithril nanico da tempo perduto !? ^Con entusiasmo cerchi di seguire la strada, scendendo in uno stretto e tortuoso tunnel... ^...^Dopo un paio d'ore d'infruttuosa ricerca capisci che ti sei perso nelle profondità di Moria e che ora devi cercare la via per uscirne.
 mno_moria_exit_scene|Trova la via d'uscita !
-menu_castle_outside|Sei fuori da {s2}.{s11} {s3} {s4}
+menu_castle_outside|Sei fuori da: {s2}. {s11} {s3} {s4}
 mno_moria_enter|Ritorna nel salone principale di Moria attraverso l'entrata segreta
 mno_moria_enter_door|Entra a Moria.
 mno_castle_start_siege|Assedia {reg6?}.
-mno_castle_leave|Abbandona.
+mno_castle_leave|Vattene.
 menu_castle_besiege|Stai assediando {s1}. {s2} {s3}
 mno_siege_request_meeting|Richiedi un incontro con il comandante del castello.
 mno_wait_24_hours|Aspetta fino a domani.
@@ -264,17 +264,17 @@ menu_town_bandits_succeeded|^^^^^ I goblin cadono davanti a voi come il grano so
 menu_town_brawl_lost|^^^^^^Sei stato colpito a tradimento. Coloro che ti hanno attaccato si affrettano a frugarti in cerca di cose di valore, prima di darsi alla fuga.
 menu_town_brawl_won|^^^^^Hai battuto tutti gli avversari e le guardie hanno riportato l'ordine. Velocemente cerchi oggetti di valore per poi sparire finchè non si calmano le acque.^Magari la prossima volta mostreranno più rispetto e faranno marcia indietro.
 menu_close|Niente.
-menu_town|Sei arrivato a {s60}.{s12}{s13}
+menu_town|Sei arrivato a: {s60}.{s12}{s13}
 mno_town_menu_0|Vai da qualche parte.
 mno_town_menu_0_door|Porta che conduce verso un luogo.
 mno_town_approach|Vai verso: {s1}...
 mno_town_castle|Vai a: {s1}.
 mno_town_castle_door|Portone del castello.
 mno_town_center|Passeggia per la piazza principale...
-mno_town_center_door|Porta per il centro della città.
+mno_town_center_door|Porta per il centro dell'insediamento.
 mno_aw_chamber_door|Apri la porta.
-mno_trade_with_arms_merchant|Visita {s40}.
-mno_trade_with_horse_merchant|Visita {s41}.
+mno_trade_with_arms_merchant|Ispeziona {s40}.
+mno_trade_with_horse_merchant|Ispeziona {s41}.
 mno_town_prison_door|Porta della prigione.
 mno_dungeon_enter|Cerca le lance perdute all'interno delle montagne.
 mno_dungeon_enter_door|Apri la porta.
@@ -284,7 +284,7 @@ mno_talk_to_castle_commander|Visita le caserme di {s61}.
 mno_speak_with_elder|Parla con il {s6}.
 mno_isengard_underground|Dirigiti verso le caverne sotterranee 
 mno_tirith_toplevel|Raggiungi il livello più alto
-mno_town_leave|Abbandona...
+mno_town_leave|Vattene...
 mno_town_leave_door|Abbandona l'area
 menu_disembark|Desideri sbarcare ?
 mno_disembark_yes|Si.
@@ -299,8 +299,8 @@ mno_sneak_caught_fight|Prova a farti largo combattendo !
 mno_sneak_caught_surrender|Arrenditi.
 menu_sneak_into_town_caught_dispersed_guards|Ti liberi delle guardie e cancelli le tue tracce per non farti trovare, semini facilmente gli inseguitori nel dedalo di strade.
 menu_sneak_into_town_caught_ran_away|Trovi una via di fuga attraverso il cancello e ti ritiri prontamente verso la salvezza sulle colline.
-menu_tld_player_defeated|^^^^^ Improvvisamente senti un dolore dirompente alla nuca ! Il tuo corpo è scosso dai brividi mentre tutto si oscura attorno a te... ^ E' questa la tua fine ?
-menu_recover_after_death_fangorn|Ti svegli. La foresta ti circonda ancora e ogni osso ti fa male. Sei vivo, per miracolo.^^ E' stata una sconfitta, ma almeno sei in grado di vedere quello che è successo. ^Ora sai che cosa accade in questa foresta maledetta,^e sei sopravvissuto per raccontarlo. ^^Ti crederà mai qualcuno, quando lo farai ?
+menu_tld_player_defeated|^^^^^ Improvvisamente senti un dolore dirompente alla nuca ! Il tuo corpo è scosso dai brividi mentre tutto si oscura attorno a te... ^ È questa la tua fine ?
+menu_recover_after_death_fangorn|Ti svegli. La foresta ti circonda ancora e ogni osso ti fa male. Sei vivo, per miracolo.^^ È stata una sconfitta, ma almeno sei in grado di vedere quello che è successo. ^Ora sai che cosa accade in questa foresta maledetta,^e sei sopravvissuto per raccontarlo. ^^Ti crederà mai qualcuno, quando lo farai ?
 menu_recover_after_death_moria|^^^^^Riprendi conoscenza. Sei sdraiato su di un soffice manto erboso, una fresca brezza ti accarezza il volto. Sei all'esterno !^Gli orchi devono averti creduto morto e hanno scaricato il tuo corpo dentro un pozzo profondo.^Devi essere stato trasportato in superficie da un torrente sotterraneo.
 mno_whatever|Alzati !
 menu_recover_after_death_default|^^^^^Riprendi conoscenza. Giaci nel posto in cui sei caduto. I nemici devono averti creduto morto e ti hanno lasciato lì. Comunque, pare che nessuna delle tue ferite sia letale, e anche se ti senti in modo orribile, ti rendi conto di essere in grado di camminare. Ti alzi e cerchi altri sopravvissuti della tua compagnia.
@@ -313,15 +313,15 @@ menu_notification_your_faction_collapsed|^^^^^La tua {s11} madrepatria è stata 
 menu_notification_faction_defeated|^^^^^{s1} È stato sconfitto !^{s1} non c'è più, essendo sconfitto dal esercito di {s13} !
 menu_ruins|^^^^Ti avvicini a {s1}. In questo luogo, un tempo, un grande accampamento è stato raso al suolo, è ancora possibile vedere tracce di fortificazioni e vecchie armi arrugginite.
 menu_legendary_place|^^^^Hai seguito le tracce ed hai trovato {s1}. Puoi esplorare questo posto e verificare da te se le indiscrezioni che hai sentito sono vere.
-mno_explore|Esplora questo posto.
-menu_ring_hunter_lair|^^^^Hai seguito il sentiero dei Cacciatori dell'Anello attraverso la foresta di Mirkwood e sei giunto a {s1}. Li vedi mentre stanno lasciando una cassa.
+mno_explore|Esplora questo luogo.
+menu_ring_hunter_lair|^^^^Hai seguito il sentiero dei Cacciatori dell'Anello attraverso Bosco Atro e sei giunto a {s1}. Li vedi mentre stanno lasciando una cassa.
 mno_attack_lair|Attaccali adesso
-mno_leave_bandit_lair|Lascia per ora.
+mno_leave_bandit_lair|Vattene per ora.
 menu_starting_quest_good|^^^^^^Avvisti una piccola carovana sotto attacco da parte di una banda di orchi. Cos'hai intenzione di fare ?
 mno_help|Aiuta gli stranieri !
 mno_start_defend_caravan|Difendi la Carovana !
 mno_start_raid_caravan|Saccheggia la Carovana !
-mno_start_ambush_orcs|Un'imboscata degli Orchi !
+mno_start_ambush_orcs|Attacca gli Orchi !
 mno_start_kill_scouts|Ferma gli esploratori dal segnalare il tuo arrivo !
 mno_go_your_way|Lasciali al loro destino
 mno_defend_villagers|Difendi gli abitanti del villaggio !
@@ -367,12 +367,12 @@ menu_funeral_pyre|Ti avvicini ai resti bruciati della pira di {s3} di {s2}. Qui 
 mno_leave_pyre|Abbandona la pira.
 menu_town_ruins|Quando ti avvicini, vedi che {s1} è {s2}
 mno_ruin_menu_0|Esplora il luogo.
-mno_ruin_leave|Abbandona...
+mno_ruin_leave|Vattene...
 menu_death|Sei stato ucciso. Anche se la guerra continua ad infuriare, tu non potrai più farne parte.
 menu_animal_ambush|Tu e i tuoi compagni vi trovate separati dal resto della compagnia, quando improvvisamente...
 menu_animal_ambush_success|I {s2} {reg0?fall:falls} cadono davanti a te come spighe di grano davanti alla falce ! In poco tempo tutti i tuoi nemici giacciono sul terreno, morti o feriti. {s3}
 menu_animal_ambush_fail|Gli animali mordono e feriscono te {reg0?,: and your companion{reg2?s,:,}} ma fortunatamente riuscite a respingerli. Forse non vi attaccheranno ancora.
-menu_build_your_scene|Qui puoi costruire la tua propria scena da battaglia, usando una delle slot qua sotto e l'Editor del gioco (Devi prima scrocettare il quadratino "Edit Mode" nelle opzioni del launcher di M&B).^Poi, puoi verificare le tue scene che hai costruito (nominate file sco dalla cartella TLD/SceneObj) al team di sviluppo di TLD, e, se la tua scena è buona abbastanza, potrà apparire nelle prossime versioni della mod come un luogo da battaglia a caso !^^ Prova anche in specificare quale regione della mappa vuoi che la tua scena appaia.^ Un paio di suggerimenti: prova ad evitare acqua profonda, montagne troppo grandi o appuntite e altri sentieri in cui non si può passare, eccetto se sei uno sceneggiatore con molta esperienza e sai come cambiare l'AI delle truppe per non andare in un posto dove non vuoi ch vadano, e quindi mettere l'AI a vagare in altri posti.^ (Gruppi #0-1 sono per gli attaccanti, #4 per i difensori, non toccare #5-8
+menu_build_your_scene|Qui puoi costruire il tuo scenario di battaglia personalizzato, usando una delle slot qua sotto e l'Editor del gioco (Devi prima togliere il flag dal quadratino "Edit Mode" nelle opzioni del launcher di M&B).^Poi, puoi verificare gli scenari che hai costruito (con estensione .sco dalla cartella TLD/SceneObj) e inviarli al team di sviluppo di TLD e, se la tua scena risultasse valida, potrà essere inclusa nelle prossime versioni della mod come contesto di una battaglia !^^ Prova anche a specificare in quale regione della mappa vuoi che la tua scena appaia.^ Un paio di suggerimenti: Cerca di evitare di inserire acque troppo profonde, montagne troppo grandi o appuntite e altri sentieri in cui non si può passare, eccetto se sei uno sceneggiatore con molta esperienza e sai come cambiare l'AI delle truppe per non andare in un posto dove non vuoi che vadano, e quindi imporre alla IA di prendere altre direzioni.^ (Gruppi #0-1 sono per gli attaccanti, #4 per i difensori, non toccare #5-8).
 mno_scene1|Campo di battaglia 5 (scn_battlefield5.sco)
 mno_scene2|Campo di battaglia 6 (scn_battlefield6.sco)
 mno_scene3|Campo di battaglia 7 (scn_battlefield7.sco)

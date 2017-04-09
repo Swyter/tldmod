@@ -19,7 +19,7 @@ quests = [
   "{s9} asked you to take a message to {s13} of {s15}. {s13} was at {s4} when you were given this quest."
   ),
 ("raise_troops", "Raise {reg1} {s14}", qf_random_quest,
-  "{s9} asked you to raise {reg1} {s14} and bring them to him."
+  "{s9} asked you to raise {reg1} {s14} and bring them to {him/her}."
   ),
 ("escort_messenger", "Escort the messenger to {s14}", qf_random_quest,
   "None"
@@ -170,7 +170,7 @@ quests = [
   "The Elder of {s10} asked you to move some {s12} to {s13}."
   ),
 ( "escort_merchant_caravan", "Escort Supply Train to {s8}", qf_random_quest,
-  "Escort the supply train to {s8}."
+  "Escort the supply train to {s8} and speak to them when near."
   ),
 ( "deliver_wine", "Deliver {reg5} Units of {s6} to {s4}", qf_random_quest,
   "The {s9} of {s3} asked you to deliver {reg5} units of {s6} to {s4} in 7 days."

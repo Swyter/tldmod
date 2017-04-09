@@ -1100,6 +1100,16 @@ simple_triggers = [
     (neq, ":new_icon", "$g_player_party_icon"),
     (assign, "$g_player_party_icon", ":new_icon"),
     (party_set_icon, "p_main_party", ":new_icon"),
+    
+    ##Kham - Piggyback on trigger for Player Controlled allies
+    (try_begin),
+      (eq, "$player_control_allies",1),
+      (assign, "$player_control_allies",0),
+        (try_begin),
+          (eq, "$cheat_mode",1),
+          (display_message, "@DEBUG: Player Control Allies RESET"),
+        (try_end),
+    (try_end),
     ]),
   
 # (38) Update how good a target player is for bandits
@@ -1182,7 +1192,7 @@ simple_triggers = [
 	]),
 
 # (41) Spawn some bandits.
-(36,[(call_script, "script_spawn_bandits")]),
+(24,[(call_script, "script_spawn_bandits")]), ## Kham Edit - 24 hours instead of 36, to give player a bit more bandits to fight pre-war.
 
 # (42) Make parties larger as game progresses.
 (24,[(call_script, "script_update_party_creation_random_limits")]),
@@ -1272,6 +1282,57 @@ simple_triggers = [
 						(eq, ":cur_quest", "qst_mirkwood_sorcerer"), # (CppCoder) Disable the ruins party if you fail the sorcerer quest.
 						(disable_party, "p_ancient_ruins"),
 						(call_script, "script_fail_quest", ":cur_quest"),
+          (else_try),
+            (eq, ":cur_quest", "qst_defend_village"),
+            (remove_party, "$qst_defend_village_party"),
+            (call_script, "script_fail_quest", ":cur_quest"),
+          (else_try),
+            (eq, ":cur_quest", "qst_raid_village"),
+            (remove_party, "$qst_raid_village_party"),
+            (call_script, "script_fail_quest", ":cur_quest"),
+          (else_try),
+            (eq, ":cur_quest", "qst_destroy_scout_camp"),
+
+            #Faction Strength Changes 
+            (str_clear, s10),
+            (str_clear, s14),
+            (str_clear, s11),
+            (str_clear, s13),
+            (str_store_string, s10, "@have taken measure of your faction's current strength and has grown bolder."),
+            (str_store_string, s14, "@loses Faction Strength as supply lines were disrupted."),
+            (quest_get_slot, ":scout_camp_faction", "qst_destroy_scout_camp", slot_quest_target_faction),
+            (faction_get_slot,":enemy",":scout_camp_faction",slot_faction_strength_tmp), 
+            (str_store_faction_name, s11, ":scout_camp_faction"),    
+            (store_character_level, ":level", "trp_player"),
+            (try_begin),
+              (is_between, ":level", 11,17), #Small Scout Camp - Enemy Win Min: 125; Max: 150 - Hero Loss Min: 275; Max: 300
+              (val_mul, ":level",5),
+              (val_add, ":level", 70),
+              (val_add, ":enemy", ":level"),
+              (display_message,"@{s11} {s10}",color_bad_news),
+              (quest_get_slot, ":quest_giver_faction", "qst_destroy_scout_camp", slot_quest_giver_troop),
+              (faction_get_slot,":loss",":quest_giver_faction",slot_faction_strength_tmp),
+              (str_store_faction_name, s13, ":quest_giver_faction"), 
+              (val_add, ":level", 150),
+              (val_sub, ":loss", ":level"),
+              (display_message,"@{s13} {s14}",color_bad_news),
+            (else_try),
+              (is_between, ":level", 17,23), #Fortified Scout Camp - Enemy Win Min: 270; Max: 320 - Hero Loss Min: 420; Max: 470
+              (val_mul, ":level",10),
+              (val_add, ":level", 100),
+              (val_add, ":enemy", ":level"),
+              (display_message,"@{s11} {s10}",color_bad_news),
+              (quest_get_slot, ":quest_giver_faction", "qst_destroy_scout_camp", slot_quest_giver_troop),
+              (faction_get_slot,":loss",":quest_giver_faction",slot_faction_strength_tmp),
+              (str_store_faction_name, s13, ":quest_giver_faction"), 
+              (val_add, ":level", 150),
+              (val_sub, ":loss", ":level"),
+              (display_message,"@{s13} {s14}",color_bad_news),
+            (try_end),
+            (faction_set_slot,":quest_giver_faction",slot_faction_strength_tmp,":loss"),
+            (faction_set_slot,":scout_camp_faction",slot_faction_strength_tmp,":enemy"), 
+            (cancel_quest, "qst_destroy_scout_camp"),
+            (remove_party, "$qst_destroy_scout_camp_party"),
 					(else_try),
 						(call_script, "script_abort_quest", ":cur_quest", 1),
 					(try_end),
@@ -1504,11 +1565,44 @@ simple_triggers = [
     (try_begin),
       (check_quest_active, "qst_eliminate_patrols"),
       (quest_get_slot, ":quest_target_party_template", "qst_eliminate_patrols", slot_quest_target_party_template),
-      (store_num_parties_destroyed_by_player, ":num_destroyed", ":quest_target_party_template"),
-      (party_template_get_slot, ":previous_num_destroyed", ":quest_target_party_template", slot_party_template_num_killed),
-      (store_sub, reg1, ":num_destroyed", ":previous_num_destroyed"),
-      (str_store_string, s2, "@Parties defeated: {reg1}"),
-      (add_quest_note_from_sreg, "qst_eliminate_patrols", 3, s2, 0),
+      (quest_get_slot, ":quest_target_faction", "qst_eliminate_patrols", slot_quest_target_faction),
+      (try_begin),
+        (neg|faction_slot_eq, ":quest_target_faction", slot_faction_state, sfs_active),
+        (call_script, "script_end_quest", "qst_eliminate_patrols"),
+      (else_try),
+        #Kham - Eliminate Patrols Refactor START
+        #(store_num_parties_destroyed_by_player, ":num_destroyed", ":quest_target_party_template"),
+        #(party_template_get_slot, ":previous_num_destroyed", ":quest_target_party_template", slot_party_template_num_killed),
+        #(store_sub, ":parties_defeated", ":num_destroyed", ":previous_num_destroyed"),
+        #(assign, reg1, ":parties_defeated"),
+        (quest_slot_eq, "qst_eliminate_patrols", slot_quest_target_troop, ":quest_target_party_template"), #Check if last enemy party attacked was target (set in mnu_total_victory)
+        (quest_get_slot,":current_defeated", "qst_eliminate_patrols", slot_quest_current_state), #Check how many player has defeated
+        (store_add, ":total_defeated",":current_defeated",1), #Add one
+        (try_begin),
+          (quest_slot_eq, "qst_eliminate_patrols", slot_quest_target_troop, ":quest_target_party_template"),
+          (set_spawn_radius,1),
+          (spawn_around_party, "p_main_party",":quest_target_party_template"),
+          (assign, ":spawn", reg0),
+          (str_store_party_name, s1, ":spawn"),
+          (remove_party, ":spawn"),
+        (try_end),
+        (quest_set_slot, "qst_eliminate_patrols", slot_quest_target_troop, 0), #Revert back to 0 state for target troop until encountered again
+        (quest_set_slot, "qst_eliminate_patrols", slot_quest_current_state, ":total_defeated"), #Set # of troops defeated
+        (assign, reg1, ":total_defeated"),
+        (quest_get_slot, ":amount", "qst_eliminate_patrols", slot_quest_target_amount), #Keep track of target
+        (assign, reg2,":amount"),
+        (val_add, ":amount", 1),
+        (val_clamp, ":total_defeated", 0,":amount"),
+
+        (try_begin),
+          (eq, "$cheat_mode",1),
+          (assign, reg0, ":current_defeated"),
+          (display_message, "@DEBUG: Eliminate Parties - Current: {reg0}, New: {reg1}"),
+        (try_end),
+         #Kham - Eliminate Patrols Refactor END
+        (str_store_string, s2, "@{s1} parties defeated: {reg1} out of {reg2}"),
+        (add_quest_note_from_sreg, "qst_eliminate_patrols", 3, s2, 0),
+      (try_end),
     (try_end),
             
     ]),
@@ -2611,9 +2705,174 @@ simple_triggers = [
 
 ] or []) + [
 
+##Kham - Eff it, lets buff Gondor completely by triggering hiring more often just for the special snowflakes -- Tested, they still suck, but they will be hard to defeat.
+
+#(12,[(try_for_range, ":troop_no", kingdom_heroes_begin, kingdom_heroes_end),
+#        (store_troop_faction, ":faction"),
+#        (eq, ":faction", "fac_gondor"),
+#        (troop_get_slot, ":party_no", ":troop_no", slot_troop_leaded_party),
+#        (ge, ":party_no", 1),
+#        (party_is_active, ":party_no"), #MV
+        #(party_slot_eq, ":party_no", slot_party_type, spt_kingdom_hero_party), #TLD: only hosts reinforce
+#        (party_get_attached_to, ":cur_attached_party", ":party_no"),
+#        (is_between, ":cur_attached_party", centers_begin, centers_end),
+#        (party_slot_eq, ":cur_attached_party", slot_center_is_besieged_by, -1), #center not under siege
+#        (call_script, "script_hire_men_to_kingdom_hero_party", ":troop_no"), #Hiring men up to lord-specific limit
+#      (try_end),
+#      (display_message, "@Gondor Reinforces!", color_good_news),
+#      ]),
+
+
+## Kham Gondor Reinforcement Event - Original / deprecated
+## (6, 
+##  [(eq, "$tld_war_began", 1),
+##   (assign, "$gondor_reinforcement_event", 0),
+##   (eq, "$gondor_reinforcement_event",0),
+##    (try_for_range,       ":cur_troop_fiefs", "trp_knight_1_1", "trp_knight_1_9"), ## Gondor Fiefs Troops
+##      (this_or_next|eq,   ":cur_troop_fiefs", "trp_knight_1_3"),
+##      (this_or_next|eq,   ":cur_troop_fiefs", "trp_knight_1_5"),
+##      (             eq,   ":cur_troop_fiefs", "trp_knight_1_6"),
+##      (troop_get_slot,    ":cur_party_fiefs", ":cur_troop_fiefs", slot_troop_leaded_party),
+##      (party_is_active,   ":cur_party_fiefs"),
+##      (party_slot_eq,     ":cur_party_fiefs", slot_party_type, spt_kingdom_hero_party), 
+##      (neg|party_slot_eq, ":cur_party_fiefs", slot_party_ai_state, spai_accompanying_army),
+##      (call_script, "script_party_set_ai_state", ":cur_party_fiefs", spai_holding_center, "p_town_linhir"),
+##      (party_set_ai_behavior, ":cur_party_fiefs",ai_bhvr_travel_to_party),
+##      (party_set_ai_object,   ":cur_party_fiefs", "p_town_linhir"),      
+##    (try_end),
+##    (try_for_range,       ":cur_troop_center", "trp_knight_1_1", "trp_knight_1_9"), ## Gondor Center Troops
+##      (this_or_next|eq,   ":cur_troop_center", "trp_knight_1_1"),
+##      (this_or_next|eq,   ":cur_troop_center", "trp_knight_1_4"),
+##      (this_or_next|eq,   ":cur_troop_center", "trp_knight_1_7"),
+##      (             eq,   ":cur_troop_center", "trp_knight_1_8"),
+##      (troop_get_slot,    ":cur_party_center", ":cur_party_fiefs", slot_troop_leaded_party),
+##      (party_is_active,   ":cur_party_center"),
+##      (party_slot_eq,     ":cur_party_center", slot_party_type, spt_kingdom_hero_party), 
+##      (neg|party_slot_eq,   ":cur_party_center", slot_party_ai_state, spai_accompanying_army),
+##      (call_script, "script_party_set_ai_state", ":cur_party_center", spai_holding_center, "p_town_minas_tirith"), 
+##      (party_set_ai_behavior, ":cur_party_center",ai_bhvr_travel_to_party),
+##      (party_set_ai_object,   ":cur_party_center", "p_town_minas_tirith"),  
+##    (try_end),
+##    (display_message, "@Gondor has called for aide!"),
+##    (assign, "$gondor_reinforcement_event", 1),
+##   ]),
+
+
+
+## Kham Gondor Reinforcement Event - Via script_succeed_quest
+
+(24,
+  [
+     #(eq, "$cheat_mode",1),
+     (eq, "$tld_war_began", 1),
+     (eq, "$gondor_reinforcement_event",0), 
+
+     (faction_get_slot, ":strength", "fac_mordor", slot_faction_strength),
+     (ge, ":strength", 3500),
+
+     (try_begin),
+       (party_is_active, "p_town_minas_tirith"),
+       (call_script, "script_defend_center", "trp_knight_1_1", "p_town_minas_tirith"),
+       (call_script, "script_defend_center", "trp_knight_1_2", "p_town_minas_tirith"),
+       (call_script, "script_defend_center", "trp_knight_1_3", "p_town_minas_tirith"),
+       (call_script, "script_defend_center", "trp_knight_1_4", "p_town_minas_tirith"),
+       (call_script, "script_defend_center", "trp_knight_1_5", "p_town_minas_tirith"),
+       (call_script, "script_defend_center", "trp_knight_1_6", "p_town_minas_tirith"), 
+       (call_script, "script_defend_center", "trp_knight_1_7", "p_town_minas_tirith"), 
+       (call_script, "script_defend_center", "trp_knight_1_8", "p_town_minas_tirith"),  
+       (call_script, "script_defend_center", "trp_knight_6_1", "p_town_minas_tirith"),  
+       (call_script, "script_defend_center", "trp_knight_6_2", "p_town_minas_tirith"),  
+     (try_end),
+
+     (try_begin),
+        (eq, "$gondor_reinforcement_event_menu",0),
+        (jump_to_menu, "mnu_gondor_reinforcement_event"),
+        (assign, "$gondor_reinforcement_event_menu",1),
+     (try_end),
+
+    (try_begin),
+      (eq, "$cheat_mode",1),
+      (display_message, "@Gondor has called for aide!"),
+    (try_end),
+    (assign, "$gondor_reinforcement_event",1),
+  ]),
+
+
+(12,
+  [  
+     #(eq, "$cheat_mode",1),  
+     (eq, "$tld_war_began", 1),
+     (eq, "$gondor_reinforcement_event",1), 
+
+     (faction_get_slot, ":strength", "fac_mordor", slot_faction_strength),
+     (ge, ":strength", 3500),
+
+     (try_begin),
+       (troop_get_slot, ":party", "trp_knight_1_3", slot_troop_leaded_party),
+       (party_is_active, ":party"),
+       (call_script, "script_accompany_marshall", "trp_knight_1_1", "trp_knight_1_3"),
+       (call_script, "script_accompany_marshall", "trp_knight_1_2", "trp_knight_1_3"),
+       (call_script, "script_accompany_marshall", "trp_knight_1_4", "trp_knight_1_3"),
+       (call_script, "script_accompany_marshall", "trp_knight_1_5", "trp_knight_1_3"),
+       (call_script, "script_accompany_marshall", "trp_knight_1_6", "trp_knight_1_3"), 
+       (call_script, "script_accompany_marshall", "trp_knight_1_7", "trp_knight_1_3"), 
+       (call_script, "script_accompany_marshall", "trp_knight_1_8", "trp_knight_1_3"),
+       (call_script, "script_accompany_marshall", "trp_knight_6_1", "trp_knight_1_3"), 
+       (call_script, "script_accompany_marshall", "trp_knight_6_2", "trp_knight_1_3"),   
+     (try_end),
+
+    (try_begin),
+      (eq, "$cheat_mode",1), 
+      (display_message, "@Gondor is accompanying the marshall!"),
+    (try_end),
+    (assign, "$gondor_reinforcement_event",0),
+  ]),
+
+
+## Kham Gondor Reinforcement Event - Let them patrol around the center
+
+## Kham Denethor Sends Faramir to West Osgiliath
+
+## Kham Gondor hero hears  the Horn of Gondor (Lore Trigger)
+
+## Kham Isengard Hero sees Isengards Crebains (Lore Trigger)
+
+
+
+
+
 ##############################################
 #trigger reserved for future save game compatibility
 
+#trigger reserved for future save game compatibility
+#(999,[]),   #Replaced by Gondor Reinforcement Event
+#trigger reserved for future save game compatibility
+(999,[]),   
+#trigger reserved for future save game compatibility
+(999,[]),   
+#trigger reserved for future save game compatibility
+(999,[]),   
+#trigger reserved for future save game compatibility
+(999,[]),   
+#trigger reserved for future save game compatibility
+(999,[]),   
+#trigger reserved for future save game compatibility
+(999,[]),   
+
+#trigger reserved for future save game compatibility
+(999,[]),   
+#trigger reserved for future save game compatibility
+(999,[]),   
+#trigger reserved for future save game compatibility
+(999,[]),   
+#trigger reserved for future save game compatibility
+(999,[]),   
+#trigger reserved for future save game compatibility
+(999,[]),   
+#trigger reserved for future save game compatibility
+(999,[]),   
+#trigger reserved for future save game compatibility
+(999,[]),   
 #trigger reserved for future save game compatibility
 (999,[]),   
 #trigger reserved for future save game compatibility
