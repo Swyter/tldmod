@@ -139,7 +139,7 @@ _fold_start_ '[Deploying Steam Workshop build]'
     echo '    "appid"               "48700" '  >> workshop_entry.vdf
     echo '    "publishedfileid" "742606214" '  >> workshop_entry.vdf
     echo "    'contentfolder'  '$CONT_FLDR' "  >> workshop_entry.vdf
-    echo "    'changenote' '$WORKSHOP_DESC' "  >> workshop_entry.vdf
+    echo "    'changenote' '--------------' "  >> workshop_entry.vdf
     echo ' }                                '  >> workshop_entry.vdf
 
     curl -LOJs 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz' && curl -LOJs "$STEAM_SS" && tar xvf steamcmd_linux.tar.gz
