@@ -16,3 +16,5 @@ addons:
       - lib32gcc1
 
 script: bash ./.travis.sh
+git:
+  depth: 1
