@@ -142,7 +142,7 @@ _fold_start_ '[Deploying Steam Workshop build]'
     echo "    'changenote' '--------------' "  >> workshop_entry.vdf
     echo ' }                                '  >> workshop_entry.vdf
 
-    curl -LOJs 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz' && curl -LOJs "$STEAM_SS" && tar xvf steamcmd_linux.tar.gz
+    curl -LOJs 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz' && tar xvf steamcmd_linux.tar.gz
 
     # do the actual submission using this (totally stable) work of art
     ./steamcmd.sh +login "$steam_ac" "$steam_tk" +workshop_build_item workshop_entry.vdf +quit | tee workshop.log
