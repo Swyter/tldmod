@@ -145,7 +145,7 @@ _fold_start_ '[Deploying Steam Workshop build]'
     curl -LOJs 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz' && curl -LOJs "$STEAM_SS" && tar xvf steamcmd_linux.tar.gz
 
     # do the actual submission using this (totally stable) work of art
-    ./steamcmd.sh +login "$STEAM_AC" "`openssl base64 -d <<< "$STEAM_TK"`" +workshop_build_item workshop_entry.vdf +quit | tee workshop.log
+    ./steamcmd.sh +login "$steam_ac" "$steam_tk" +workshop_build_item workshop_entry.vdf +quit | tee workshop.log
 
     # fail the build if things didn't go as expected
     grep --no-messages 'Success.' workshop.log || exit 1;
